@@ -67,20 +67,23 @@ async function curl(ph: Photos): Promise<PartResult> {
   const te = newEntry("Hair Type Detection", "Curl pattern", "front + right + left");
   const fe = newEntry("Hair Frizziness Detection", "Frizz", "front + right + left");
   out.trace.push(te, fe);
-  try {
-    const t = await ladder(te, async (f) => hairType(...(await heads(f))));
-    out.framing.type = `3-angle set cropped to face ≈ ${Math.round(t.frac * 100)}% width`;
-    const idx = Math.max(0, TYPE_MAPPINGS.indexOf(t.value.mapping.toLowerCase()));
-    out.type = { mapping: t.value.mapping, term: t.value.term, index: idx, family: familyOf(idx) };
-    try {
-      const fz = await ladder(fe, async (f) => hairFrizz(...(await heads(f))), HEAD_FRACS.indexOf(t.frac));
-      out.framing.frizz = `same 3-angle set, face ≈ ${Math.round(fz.frac * 100)}%`;
-      out.frizz = { level: Number(fz.value.mapping), term: fz.value.term };
-    } catch (e) {
-      out.issues.push({ detector: "Frizz", code: codeOf(e), hint: hint(codeOf(e)) });
-    }
-  } catch (e) {
-    out.issues.push({ detector: "Curl pattern + frizz", code: codeOf(e), hint: hint(codeOf(e)) });
+  // Run both detectors concurrently (sequential runs can exceed a 60 s serverless budget on cold YouCam workers).
+  const [t, fz] = await Promise.allSettled([
+    ladder(te, async (f) => hairType(...(await heads(f)))),
+    ladder(fe, async (f) => hairFrizz(...(await heads(f)))),
+  ]);
+  if (t.status === "fulfilled") {
+    out.framing.type = `3-angle set cropped to face ≈ ${Math.round(t.value.frac * 100)}% width`;
+    const idx = Math.max(0, TYPE_MAPPINGS.indexOf(t.value.value.mapping.toLowerCase()));
+    out.type = { mapping: t.value.value.mapping, term: t.value.value.term, index: idx, family: familyOf(idx) };
+  } else {
+    out.issues.push({ detector: "Curl pattern", code: codeOf(t.reason), hint: hint(codeOf(t.reason)) });
+  }
+  if (fz.status === "fulfilled") {
+    out.framing.frizz = `same 3-angle set, face ≈ ${Math.round(fz.value.frac * 100)}%`;
+    out.frizz = { level: Number(fz.value.value.mapping), term: fz.value.value.term };
+  } else {
+    out.issues.push({ detector: "Frizz", code: codeOf(fz.reason), hint: hint(codeOf(fz.reason)) });
   }
   return out;
 }

@@ -6,7 +6,7 @@ import { ALL_TEMPLATES } from "@/lib/rules";
 import { hairVto, toDataUrl, type VtoFeature } from "@/lib/youcam";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {

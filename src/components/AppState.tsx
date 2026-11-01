@@ -117,8 +117,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       SHOTS_FOR[part].forEach((s) => fd.append(s, photos[s]!.blob, `${s}.jpg`));
       fd.append("boxes", JSON.stringify(Object.fromEntries(SHOTS_FOR[part].map((s) => [s, photos[s]!.box]))));
       try {
-        const r = await fetch("/api/analyze", { method: "POST", body: fd });
-        const j = await r.json();
+        let r = await fetch("/api/analyze", { method: "POST", body: fd });
+        // One automatic retry on gateway timeouts (reruns this detector group).
+        if (r.status === 502 || r.status === 504) r = await fetch("/api/analyze", { method: "POST", body: fd });
+        const j = await r.json().catch(() => ({ error: `Server error (${r.status})` }));
         if (!r.ok) throw new Error(j.error || "Analysis failed");
         if (id === runId.current) setProgress((p) => ({ ...p, [part]: "done" }));
         return j.result as PartResult;
