@@ -2,29 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-html { scroll-behavior: smooth; }
+@layer base {
+  html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+  /* PWA / notch safe areas */
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  /* Accessibility: visible keyboard focus everywhere */
+  :focus-visible { outline: 2px solid #2F6B66; outline-offset: 2px; border-radius: 6px; }
+}
 
-.card { @apply bg-white/85 border border-line rounded-2xl shadow-card; }
-.btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed; }
-.btn-primary { @apply btn bg-teal text-white hover:bg-teal-dark; }
-.btn-dark { @apply btn bg-ink text-paper hover:bg-black; }
-.btn-ghost { @apply btn border border-line bg-white hover:bg-shell; }
-.chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium; }
-.eyebrow { @apply text-[11px] uppercase tracking-[0.18em] text-muted font-medium; }
-.h2 { @apply font-serif text-2xl sm:text-3xl tracking-tight; }
-.receipt { @apply font-mono text-[11px] text-muted; }
+/* Component classes live in the components layer so utilities (hidden, sm:inline-flex, !px-3 …) can override them. */
+@layer components {
+  .card { @apply bg-white/85 border border-line rounded-2xl shadow-card; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply btn bg-teal text-white hover:bg-teal-dark; }
+  .btn-dark { @apply btn bg-ink text-paper hover:bg-black; }
+  .btn-ghost { @apply btn border border-line bg-white hover:bg-shell; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium; }
+  .eyebrow { @apply text-[11px] uppercase tracking-[0.18em] text-muted font-medium; }
+  .h2 { @apply font-serif text-2xl sm:text-3xl tracking-tight; }
+  .receipt { @apply font-mono text-[11px] text-muted; }
+  .skeleton { background: linear-gradient(90deg, #ECE6DC 0, #F6F3EE 50%, #ECE6DC 100%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; }
+  .strand-dot { animation: strand 1.2s ease-in-out infinite; }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+}
 
 @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
-.skeleton { background: linear-gradient(90deg, #ECE6DC 0, #F6F3EE 50%, #ECE6DC 100%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; }
-
 @keyframes strand { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
-.strand-dot { animation: strand 1.2s ease-in-out infinite; }
 
-/* Accessibility: visible keyboard focus everywhere, respect reduced motion */
-:focus-visible { outline: 2px solid #2F6B66; outline-offset: 2px; border-radius: 6px; }
+/* Hide horizontal scrollbar on the tab strip (still scrollable / swipeable) */
+[role="tablist"]::-webkit-scrollbar { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
-.tab { @apply whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium text-muted hover:text-ink hover:bg-shell transition; }
-.tab[aria-selected="true"] { @apply bg-ink text-paper hover:bg-ink hover:text-paper; }

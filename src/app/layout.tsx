@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppProvider } from "@/components/AppState";
 import { Footer, Header } from "@/components/Shell";
 import CoachWidget from "@/components/Coach";
+import { RegisterSW } from "@/components/Pwa";
 
 const serif = Fraunces({ subsets: ["latin"], variable: "--font-serif", weight: ["400", "500", "600"], style: ["normal", "italic"] });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -13,8 +14,12 @@ export const metadata: Metadata = {
   title: "StrandLab · AI hair-care advisor",
   description:
     "StrandLab measures your curl pattern, frizz, density and length with YouCam Hair AI, adds porosity and today's dew point, and tells you which ingredients your hair actually needs — before you buy.",
+  applicationName: "StrandLab",
+  appleWebApp: { capable: true, title: "StrandLab", statusBarStyle: "default" },
+  icons: { icon: [{ url: "/icons/icon.svg", type: "image/svg+xml" }, { url: "/icons/icon-192.png", sizes: "192x192" }], apple: "/icons/apple-touch-icon.png" },
+  formatDetection: { telephone: false },
 };
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#F6F3EE" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#F6F3EE", viewportFit: "cover" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -25,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <main id="main" className="flex-1">{children}</main>
           <Footer />
           <CoachWidget />
+          <RegisterSW />
         </AppProvider>
       </body>
     </html>

@@ -8,10 +8,18 @@ import Markdown from "./Markdown";
 import { ChatIcon, Logo } from "./Shell";
 import { Dots } from "./Quiz";
 
-type Msg = { role: "user" | "coach"; text: string; error?: boolean };
+type Msg = { role: "user" | "coach"; text: string; label?: string; error?: boolean; followups?: string[] };
 
 const GENERAL = ["What does 3A or 4C mean?", "What is hair porosity?", "Why does glycerin make my hair frizzy?", "How does StrandLab work?"];
 const PERSONAL = ["Explain my results simply", "Why should I avoid glycerin right now?", "Build me a 3-product routine", "What should I change in humid weather?"];
+
+export function Sparkle({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zM19 14l.9 2.6 2.6.9-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9L19 14z" />
+    </svg>
+  );
+}
 
 export default function CoachWidget() {
   const { coachOpen, openCoach, closeCoach, pendingQuestion, clearPending, coachContext } = useApp();
@@ -42,7 +50,7 @@ export default function CoachWidget() {
 
   useEffect(() => {
     if (coachOpen && pendingQuestion) {
-      ask(pendingQuestion);
+      ask(pendingQuestion.q, pendingQuestion.label);
       clearPending();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,11 +60,11 @@ export default function CoachWidget() {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [msgs, busy]);
 
-  async function ask(question: string) {
+  async function ask(question: string, label?: string) {
     const text = question.trim();
     if (!text || busy) return;
-    const history = msgs.filter((m) => !m.error);
-    setMsgs([...msgs, { role: "user", text }]);
+    const history = msgs.filter((m) => !m.error).map(({ role, text }) => ({ role, text }));
+    setMsgs([...msgs, { role: "user", text, label }]);
     setQ("");
     setBusy(true);
     try {
@@ -66,7 +74,7 @@ export default function CoachWidget() {
         body: JSON.stringify({ context: coachContext?.text || "", question: text, history }),
       });
       const j = await r.json();
-      setMsgs((m) => [...m, r.ok ? { role: "coach", text: j.answer } : { role: "coach", text: j.error || "Something went wrong.", error: true }]);
+      setMsgs((m) => [...m, r.ok ? { role: "coach", text: j.answer, followups: j.followups || [] } : { role: "coach", text: j.error || "Something went wrong.", error: true }]);
     } catch {
       setMsgs((m) => [...m, { role: "coach", text: "The coach is unavailable right now. Please try again.", error: true }]);
     }
@@ -80,7 +88,7 @@ export default function CoachWidget() {
       {!coachOpen && (
         <button
           onClick={() => openCoach()}
-          className={`fixed ${inFlow ? "bottom-24" : "bottom-5"} right-5 z-40 flex items-center gap-2 rounded-full bg-teal px-5 py-3.5 text-white shadow-card shadow-teal/30 hover:bg-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal`}
+          className={`fixed ${inFlow ? "bottom-24" : "bottom-5"} right-4 sm:right-5 z-40 flex items-center gap-2 rounded-full bg-teal px-4 py-3 sm:px-5 sm:py-3.5 mb-[env(safe-area-inset-bottom)] text-white shadow-card shadow-teal/30 hover:bg-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal`}
           aria-label="Open the StrandLab hair coach"
         >
           <ChatIcon className="h-5 w-5" />
@@ -97,7 +105,7 @@ export default function CoachWidget() {
         aria-labelledby="coach-title"
         className={`fixed z-50 inset-y-0 right-0 w-full sm:w-[440px] bg-paper shadow-2xl border-l border-line flex flex-col transition-transform duration-200 ${coachOpen ? "translate-x-0" : "translate-x-full invisible"}`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4 bg-white">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4 bg-white safe-top">
           <div className="flex items-start gap-3">
             <Logo className="h-9 w-9 mt-0.5" />
             <div>
@@ -107,9 +115,12 @@ export default function CoachWidget() {
               </p>
             </div>
           </div>
+          <div className="flex items-center gap-1">
+          {msgs.length > 0 && <button onClick={() => setMsgs([])} className="btn-ghost !px-3 !py-1.5 text-xs" aria-label="Start a new conversation">New chat</button>}
           <button onClick={closeCoach} className="btn-ghost !p-2" aria-label="Close coach">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
+          </div>
         </div>
 
         <div ref={scroller} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" aria-live="polite" aria-busy={busy}>
@@ -134,7 +145,8 @@ export default function CoachWidget() {
           {msgs.map((m, i) =>
             m.role === "user" ? (
               <div key={i} className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-sm text-paper">
-                <span className="sr-only">You said: </span>{m.text}
+                <span className="sr-only">You said: </span>
+                {m.label ? <span className="inline-flex items-center gap-1.5"><Sparkle /> {m.label}</span> : m.text}
               </div>
             ) : (
               <div key={i} className="flex gap-2.5">
@@ -142,6 +154,19 @@ export default function CoachWidget() {
                 <div className={`max-w-[88%] rounded-2xl rounded-tl-md border px-4 py-3 text-[15px] ${m.error ? "border-clay/40 bg-clay-soft text-clay" : "border-line bg-white text-ink/90"}`}>
                   <span className="sr-only">Coach replied: </span>
                   <Markdown text={m.text} />
+                  {i === msgs.length - 1 && !busy && m.followups && m.followups.length > 0 && (
+                    <div className="mt-4 border-t border-line pt-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Ask next</p>
+                      <div className="mt-2 flex flex-col gap-1.5">
+                        {m.followups.map((f) => (
+                          <button key={f} onClick={() => ask(f)} className="group flex items-center justify-between gap-2 rounded-xl border border-teal/25 bg-teal-soft/40 px-3 py-2 text-left text-sm text-teal-dark hover:bg-teal-soft hover:border-teal/50">
+                            <span>{f}</span>
+                            <span aria-hidden className="transition group-hover:translate-x-0.5">→</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ),
@@ -153,7 +178,7 @@ export default function CoachWidget() {
           )}
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="border-t border-line bg-white p-4">
+        <form onSubmit={(e) => { e.preventDefault(); ask(q); }} className="border-t border-line bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <label htmlFor="coach-input" className="sr-only">Your question</label>
           <div className="flex items-end gap-2">
             <textarea

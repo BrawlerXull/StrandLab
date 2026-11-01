@@ -25,9 +25,9 @@ type State = {
   reset: () => void;
   // Coach
   coachOpen: boolean;
-  openCoach: (question?: string) => void;
+  openCoach: (question?: string, label?: string) => void;
   closeCoach: () => void;
-  pendingQuestion: string | null;
+  pendingQuestion: { q: string; label?: string } | null;
   clearPending: () => void;
   coachContext: { label: string; text: string } | null;
   setCoachContext: (c: { label: string; text: string } | null) => void;
@@ -64,7 +64,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [frontUrl, setFrontUrl] = useState<string | null>(null);
   const [history, setHistory] = useState<Hist[]>([]);
   const [coachOpen, setCoachOpen] = useState(false);
-  const [pendingQuestion, setPending] = useState<string | null>(null);
+  const [pendingQuestion, setPending] = useState<{ q: string; label?: string } | null>(null);
   const [coachContext, setCoachContext] = useState<{ label: string; text: string } | null>(null);
   const runId = useRef(0);
   const loaded = useRef(false);
@@ -163,8 +163,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     history,
     reset,
     coachOpen,
-    openCoach: (q) => {
-      if (q) setPending(q);
+    openCoach: (q, label) => {
+      if (q) setPending({ q, label });
       setCoachOpen(true);
     },
     closeCoach: () => setCoachOpen(false),

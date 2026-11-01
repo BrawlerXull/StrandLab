@@ -9,6 +9,7 @@ import { ClimateBadge } from "./Quiz";
 import LabelCheck from "./LabelCheck";
 import Preview from "./Preview";
 import { ChatIcon } from "./Shell";
+import { Sparkle } from "./Coach";
 
 export function contextFor(p: Profile, rec: Rec) {
   const m = p.measured;
@@ -30,12 +31,21 @@ export function contextFor(p: Profile, rec: Rec) {
 }
 
 const TABS = [
-  { id: "overview", label: "Overview" },
-  { id: "ingredients", label: "Ingredients" },
-  { id: "routine", label: "Routine" },
-  { id: "products", label: "Products" },
-  { id: "preview", label: "Preview" },
+  { id: "overview", label: "Overview", caption: "Your profile", icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0" },
+  { id: "ingredients", label: "Ingredients", caption: "Seek & avoid", icon: "M9 3h6M10 3v6L5 19a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3L14 9V3M7.5 15h9" },
+  { id: "routine", label: "Routine", caption: "Step by step", icon: "M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" },
+  { id: "products", label: "Products", caption: "Matched kit", icon: "M6 7h12l-1 13H7L6 7zM9 7V5a3 3 0 0 1 6 0v2" },
+  { id: "preview", label: "Preview", caption: "See it on you", icon: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" },
 ] as const;
+
+/** What "Explain this section" asks the coach for each tab. */
+const EXPLAIN: Record<string, { label: string; q: string }> = {
+  overview: { label: "Explain my overview", q: "Explain my overview in simple terms: what do my measurements mean together, and what is the single most important thing for me to change?" },
+  ingredients: { label: "Explain my ingredients", q: "Walk me through my ingredients section: which 2–3 matter most for my hair, why, and how do I spot them on a label in a shop?" },
+  routine: { label: "Explain my routine", q: "Explain my wash-day routine step by step in plain words, and tell me which step makes the biggest difference for my hair." },
+  products: { label: "Explain my product matches", q: "How should I use my product matches: what is the minimum starter kit I need, what can wait, and what should I look for if I buy a different brand?" },
+  preview: { label: "Explain my preview", q: "What can I realistically expect from this routine compared to the ad photo, and roughly how long until I notice a difference?" },
+};
 type TabId = (typeof TABS)[number]["id"];
 
 export default function Results({ title, sampleName, profile, frontUrl, frontBlob, samplePreviews, history, retakeHref, editDetailsHref, onRestart }: {
@@ -72,7 +82,7 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
   const idx = TABS.findIndex((t) => t.id === tab);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6 pb-10">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-6 pb-24">
       <div id="results-top" className="scroll-mt-24 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">{title}</p>
@@ -86,38 +96,57 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-16 z-20 -mx-4 sm:mx-0 mt-6 bg-paper/95 backdrop-blur border-b border-line">
-        <div role="tablist" aria-label="Result sections" className="flex gap-1 overflow-x-auto px-4 sm:px-0 py-2">
-          {TABS.map((t, i) => (
-            <button
-              key={t.id}
-              role="tab"
-              id={`tab-${t.id}`}
-              aria-selected={tab === t.id}
-              aria-controls={`panel-${t.id}`}
-              tabIndex={tab === t.id ? 0 : -1}
-              onClick={() => go(t.id)}
-              onKeyDown={(e) => {
-                if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
-                  const n = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length].id;
-                  go(n);
-                  document.getElementById(`tab-${n}`)?.focus();
-                }
-              }}
-              className="tab"
-            >
-              <span className="mr-1.5 font-mono text-xs opacity-60">{i + 1}</span>{t.label}
-            </button>
-          ))}
+      <div className="sticky top-[calc(4rem+env(safe-area-inset-top))] z-20 -mx-4 sm:mx-0 mt-6 bg-paper/95 backdrop-blur py-2">
+        <div
+          role="tablist"
+          aria-label="Result sections"
+          className="flex md:grid md:grid-cols-5 gap-2 overflow-x-auto snap-x px-4 sm:px-0 md:rounded-2xl md:border md:border-line md:bg-white md:p-1.5 md:shadow-card [scrollbar-width:none]"
+        >
+          {TABS.map((t, i) => {
+            const active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                role="tab"
+                id={`tab-${t.id}`}
+                aria-selected={active}
+                aria-controls={`panel-${t.id}`}
+                tabIndex={active ? 0 : -1}
+                onClick={() => go(t.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                    const n = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length].id;
+                    go(n);
+                    document.getElementById(`tab-${n}`)?.focus();
+                  }
+                }}
+                className={`snap-start shrink-0 flex items-center gap-3 rounded-xl px-4 py-2.5 md:py-3 text-left transition border md:border-0 ${
+                  active ? "bg-teal text-white border-teal shadow-md shadow-teal/20" : "bg-white md:bg-transparent border-line text-ink hover:bg-shell"
+                }`}
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${active ? "bg-white/15" : "bg-teal-soft text-teal-dark"}`} aria-hidden>
+                  <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-[15px] font-semibold tracking-tight">{t.label}</span>
+                  <span className={`block text-xs ${active ? "text-white/80" : "text-muted"}`}>
+                    <span className="sr-only">Section {i + 1} of {TABS.length}: </span>{t.caption}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="pt-8">
         {tab === "overview" && <Overview profile={profile} rec={rec} frontUrl={frontUrl} history={history} go={go} openCoach={openCoach} />}
-        {tab === "ingredients" && <Ingredients rec={rec} />}
-        {tab === "routine" && <Routine rec={rec} />}
-        {tab === "products" && <Products rec={rec} shop={shop} />}
-        {tab === "preview" && <Preview measured={profile.measured} frontUrl={frontUrl} frontBlob={frontBlob} samplePreviews={samplePreviews} />}
+        {tab === "ingredients" && <Ingredients rec={rec} ask={openCoach} />}
+        {tab === "routine" && <Routine rec={rec} ask={openCoach} />}
+        {tab === "products" && <Products rec={rec} shop={shop} ask={openCoach} />}
+        {tab === "preview" && (
+          <Preview measured={profile.measured} frontUrl={frontUrl} frontBlob={frontBlob} samplePreviews={samplePreviews} action={<ExplainButton tab="preview" ask={openCoach} />} />
+        )}
       </div>
 
       {/* Prev / next between sections */}
@@ -127,7 +156,6 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
         ) : (
           <span />
         )}
-        <button className="btn-ghost hidden sm:inline-flex" onClick={() => openCoach("Explain my results simply")}><ChatIcon /> Explain this to me</button>
         {idx < TABS.length - 1 ? (
           <button className="btn-primary" onClick={() => go(TABS[idx + 1].id)}>Next: {TABS[idx + 1].label} →</button>
         ) : (
@@ -135,6 +163,40 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
         )}
       </nav>
     </div>
+  );
+}
+
+/** Section heading with an AI "explain this section" action aligned to the right. */
+function SectionHead({ id, title, children, tab, ask }: { id: string; title: string; children?: React.ReactNode; tab: string; ask: (q?: string, l?: string) => void }) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="max-w-3xl">
+        <h2 id={id} className="h2">{title}</h2>
+        {children && <div className="mt-2 text-ink/75">{children}</div>}
+      </div>
+      <ExplainButton tab={tab} ask={ask} />
+    </div>
+  );
+}
+
+export function ExplainButton({ tab, ask }: { tab: string; ask: (q?: string, l?: string) => void }) {
+  const e = EXPLAIN[tab];
+  return (
+    <button
+      onClick={() => ask(e.q, e.label)}
+      className="shrink-0 self-start sm:self-auto inline-flex items-center gap-2 rounded-full border border-teal/40 bg-teal-soft px-4 py-2.5 text-sm font-semibold text-teal-dark hover:bg-teal hover:text-white transition"
+    >
+      <Sparkle /> Explain this section
+    </button>
+  );
+}
+
+/** Small inline "Ask why" link that sends a specific question to the coach. */
+function AskWhy({ q, label, ask, text = "Ask why" }: { q: string; label: string; ask: (q?: string, l?: string) => void; text?: string }) {
+  return (
+    <button onClick={() => ask(q, label)} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-teal hover:bg-teal-soft" aria-label={`${text}: ${label}`}>
+      <Sparkle className="h-3 w-3" /> {text}
+    </button>
   );
 }
 
@@ -149,7 +211,7 @@ function history_replace(t: string) {
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 // ---------------- Overview ----------------
-function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile: Profile; rec: Rec; frontUrl: string; history: Hist[]; go: (t: TabId) => void; openCoach: (q?: string) => void }) {
+function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile: Profile; rec: Rec; frontUrl: string; history: Hist[]; go: (t: TabId) => void; openCoach: (q?: string, l?: string) => void }) {
   const m = profile.measured;
   const tags = Object.values(rec.tags) as Rec["tags"][Tag][];
   const topSeek = tags.filter((t) => t.score > 0).sort((a, b) => b.score - a.score)[0];
@@ -158,6 +220,7 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile:
 
   return (
     <div className="space-y-10">
+      <SectionHead id="ov-title" title="Overview" tab="overview" ask={openCoach}>Your measurements and the three things that matter most.</SectionHead>
       {m.issues.length > 0 && (
         <div className="rounded-xl border border-amber/40 bg-amber-soft p-4 text-sm" role="alert">
           <p className="font-medium">Some measurements need a better photo</p>
@@ -219,7 +282,7 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile:
           <Explore title="Products" text="Your ranked starter kit, plus a label checker." onClick={() => go("products")} />
           <Explore title="Preview" text="The realistic result vs the ad promise, on your photo." onClick={() => go("preview")} />
         </div>
-        <button onClick={() => openCoach("Explain my results simply")} className="mt-4 w-full card p-5 text-left flex items-center gap-4 hover:border-teal">
+        <button onClick={() => openCoach(EXPLAIN.overview.q, EXPLAIN.overview.label)} className="mt-4 w-full card p-5 text-left flex items-center gap-4 hover:border-teal">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-teal text-white"><ChatIcon className="h-5 w-5" /></span>
           <span>
             <span className="block font-medium">Not sure what this means? Ask the coach.</span>
@@ -302,25 +365,24 @@ function Scale({ steps, at, labels }: { steps: number; at: number; labels: strin
 }
 
 // ---------------- Ingredients ----------------
-function Ingredients({ rec }: { rec: Rec }) {
+function Ingredients({ rec, ask }: { rec: Rec; ask: (q?: string, l?: string) => void }) {
   const tags = Object.values(rec.tags) as Rec["tags"][Tag][];
   const seek = tags.filter((t) => t.score > 0).sort((a, b) => b.score - a.score);
   const avoid = tags.filter((t) => t.score < 0).sort((a, b) => a.score - b.score);
   return (
     <section aria-labelledby="ing-title">
-      <h2 id="ing-title" className="h2">Ingredients for your hair</h2>
-      <p className="mt-2 max-w-3xl text-ink/75">
-        Every point comes from one of your measurements, and the reason is listed underneath. Use this when reading any label in a shop.
-      </p>
+      <SectionHead id="ing-title" title="Ingredients for your hair" tab="ingredients" ask={ask}>
+        Every recommendation comes from one of your measurements, and the reason is listed underneath. Use this when reading any label.
+      </SectionHead>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <TagList title="Look for" items={seek} tone="teal" />
-        <TagList title="Avoid or limit" items={avoid} tone="clay" />
+        <TagList title="Look for" items={seek} tone="teal" ask={ask} />
+        <TagList title="Avoid or limit" items={avoid} tone="clay" ask={ask} />
       </div>
     </section>
   );
 }
 
-function TagList({ title, items, tone }: { title: string; items: Rec["tags"][Tag][]; tone: "teal" | "clay" }) {
+function TagList({ title, items, tone, ask }: { title: string; items: Rec["tags"][Tag][]; tone: "teal" | "clay"; ask: (q?: string, l?: string) => void }) {
   return (
     <div className="card p-5">
       <h3 className={`font-medium text-lg ${tone === "teal" ? "text-teal-dark" : "text-clay"}`}>{tone === "teal" ? "✓" : "✕"} {title}</h3>
@@ -334,7 +396,14 @@ function TagList({ title, items, tone }: { title: string; items: Rec["tags"][Tag
                 {Math.abs(t.score) >= 3 ? "Strong" : Math.abs(t.score) === 2 ? "Moderate" : "Mild"}
               </span>
             </div>
-            <p className="text-xs text-muted">On labels: {TAG_INFO[t.tag].examples}</p>
+            <div className="flex flex-wrap items-center justify-between gap-1">
+              <p className="text-xs text-muted">On labels: {TAG_INFO[t.tag].examples}</p>
+              <AskWhy
+                ask={ask}
+                label={`Why ${tone === "teal" ? "look for" : "avoid"} ${TAG_INFO[t.tag].label.toLowerCase()}?`}
+                q={`Why should I ${tone === "teal" ? "look for" : "avoid"} ${TAG_INFO[t.tag].label} (${TAG_INFO[t.tag].examples}) for my hair? Give one practical label-reading tip.`}
+              />
+            </div>
             <ul className="mt-1.5 text-sm text-ink/80 space-y-0.5">
               {t.why.map((w) => <li key={w} className="flex gap-2"><span aria-hidden className="text-muted">•</span>{w}</li>)}
             </ul>
@@ -346,17 +415,21 @@ function TagList({ title, items, tone }: { title: string; items: Rec["tags"][Tag
 }
 
 // ---------------- Routine ----------------
-function Routine({ rec }: { rec: Rec }) {
+function Routine({ rec, ask }: { rec: Rec; ask: (q?: string, l?: string) => void }) {
   return (
     <section aria-labelledby="rt-title">
-      <h2 id="rt-title" className="h2">Your wash-day routine</h2>
-      <p className="mt-2 text-ink/75">Use <b>{rec.weight}</b>-weight products. Follow the steps in order.</p>
+      <SectionHead id="rt-title" title="Your wash-day routine" tab="routine" ask={ask}>
+        Use <b>{rec.weight}</b>-weight products. Follow the steps in order.
+      </SectionHead>
       <ol className="mt-6 space-y-3">
         {rec.routine.map((r, i) => (
           <li key={r.step} className="card p-5 flex gap-4">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal text-white font-medium" aria-hidden>{i + 1}</span>
-            <div>
-              <h3 className="font-medium text-lg">{r.step}</h3>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-medium text-lg">{r.step}</h3>
+                <AskWhy ask={ask} text="How do I do this?" label={`How do I do: ${r.step}?`} q={`Explain how to do the "${r.step}" step (${r.detail}) for my hair, with the common mistakes to avoid.`} />
+              </div>
               <p className="mt-0.5">{r.detail}</p>
               <p className="mt-1 text-sm text-muted"><span className="font-medium text-ink/70">Why:</span> {r.why}</p>
             </div>
@@ -368,20 +441,15 @@ function Routine({ rec }: { rec: Rec }) {
 }
 
 // ---------------- Products ----------------
-function Products({ rec, shop }: { rec: Rec; shop: Record<string, ScoredProduct[]> }) {
+function Products({ rec, shop, ask }: { rec: Rec; shop: Record<string, ScoredProduct[]>; ask: (q?: string, l?: string) => void }) {
   const kit = CATEGORIES.map((c) => shop[c][0]).filter((p) => p.match >= 50);
   const total = kit.reduce((a, p) => a + p.price, 0);
   return (
     <section aria-labelledby="pr-title">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 id="pr-title" className="h2">Products matched to you</h2>
-          <p className="mt-2 text-ink/75">The best match in each category comes first. Expand any category to compare.</p>
-        </div>
-        <div className="card px-4 py-3 text-sm">
-          Your starter kit: <b>{kit.length} products · ${total}</b>
-        </div>
-      </div>
+      <SectionHead id="pr-title" title="Products matched to you" tab="products" ask={ask}>
+        The best match in each category comes first. Expand any category to compare.
+        <p className="mt-2 text-sm text-ink">Your starter kit: <b>{kit.length} products · ${total}</b></p>
+      </SectionHead>
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} />)}
         <LabelCheck rec={rec} />

@@ -7,7 +7,8 @@ import { Dots } from "./Quiz";
 
 type Key = string; // `${feature}:${template}`
 
-export default function Preview({ measured, frontUrl, frontBlob, samplePreviews }: {
+export default function Preview({ measured, frontUrl, frontBlob, samplePreviews, action }: {
+  action?: React.ReactNode;
   measured: Measured;
   frontUrl: string;
   frontBlob: Blob | null;
@@ -54,14 +55,17 @@ export default function Preview({ measured, frontUrl, frontBlob, samplePreviews 
     <section>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Expectation check · YouCam {plan.feature === "hair-vol" ? "Hair Volume" : "Wavy Hair"} VTO</p>
-          <h2 className="h2 mt-2">Realistic result vs the ad promise</h2>
+          <h2 className="h2">Realistic result vs the ad promise</h2>
           <p className="mt-2 max-w-3xl text-muted">{plan.why} Shoppers abandon products when they expect the ad photo. Here is the realistic target, on you.</p>
+          <p className="mt-1 text-xs text-muted">Rendered with YouCam {plan.feature === "hair-vol" ? "Hair Volume" : "Wavy Hair"} virtual try-on.</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+        {action}
         <div className="flex rounded-full border border-line bg-white p-1 text-sm" role="group" aria-label="Preview style set">
           {(["feminine", "masculine"] as const).map((p) => (
             <button key={p} aria-pressed={pres === p} onClick={() => setPres(p)} className={`rounded-full px-3 py-1.5 ${pres === p ? "bg-ink text-paper" : ""}`}>{p === "feminine" ? "Women's styles" : "Men's styles"}</button>
           ))}
+        </div>
         </div>
       </div>
       <div className={`mt-6 grid gap-4 ${single ? "sm:grid-cols-2 max-w-3xl" : "sm:grid-cols-3"}`}>

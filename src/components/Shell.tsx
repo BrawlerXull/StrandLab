@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useApp } from "./AppState";
+import { useInstall } from "./Pwa";
 
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   return (
@@ -24,8 +25,9 @@ export function Header() {
   const { openCoach, measured } = useApp();
   const [menu, setMenu] = useState(false);
   const inFlow = path.startsWith("/scan");
+  const { canInstall, iosHint, install } = useInstall();
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur safe-top">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 btn-dark">Skip to content</a>
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 rounded-lg" aria-label="StrandLab home">
@@ -42,6 +44,11 @@ export function Header() {
           )}
         </nav>
         <div className="flex items-center gap-2">
+          {canInstall && (
+            <button onClick={install} className="btn-ghost !px-3 hidden md:inline-flex" aria-label="Install StrandLab as an app">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg> Install app
+            </button>
+          )}
           <button onClick={() => openCoach()} className="btn-ghost !px-3 sm:!px-4" aria-label="Ask the hair coach">
             <ChatIcon /> <span className="hidden sm:inline">Ask the coach</span>
           </button>
@@ -58,6 +65,8 @@ export function Header() {
           {[...NAV, ...(measured ? [{ href: "/results", label: "My results" }] : []), { href: "/scan", label: "Start free scan" }].map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="rounded-lg px-3 py-3 text-base hover:bg-shell">{n.label}</Link>
           ))}
+          {canInstall && <button onClick={() => { setMenu(false); install(); }} className="rounded-lg px-3 py-3 text-base text-left text-teal hover:bg-shell">Install StrandLab app</button>}
+          {iosHint && <p className="px-3 py-2 text-sm text-muted">Install on iPhone: tap <b>Share</b> → <b>Add to Home Screen</b>.</p>}
         </nav>
       )}
     </header>
@@ -131,7 +140,7 @@ export function FlowNav({ back, backLabel = "Back", next, nextLabel, nextDisable
   hint?: React.ReactNode;
 }) {
   return (
-    <div className="sticky bottom-0 z-30 mt-10 border-t border-line bg-paper/95 backdrop-blur">
+    <div className="sticky bottom-0 z-30 mt-10 border-t border-line bg-paper/95 backdrop-blur safe-bottom">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 sm:px-6 py-3">
         <button onClick={back} className="btn-ghost">← {backLabel}</button>
         <p className="hidden md:block text-sm text-muted text-center flex-1">{hint}</p>
