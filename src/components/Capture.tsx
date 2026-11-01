@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { faceBox, fileToImage, toJpeg } from "@/lib/client";
 import type { FaceBox, Shot } from "@/lib/types";
 import { SHOTS } from "@/lib/types";
+import { FlowNav } from "./Shell";
 
 export type CapturedPhoto = { blob: Blob; url: string; box: FaceBox | null };
 
@@ -59,14 +60,18 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10">
-      <button onClick={onBack} className="text-sm text-muted hover:text-ink">← Back</button>
-      <p className="eyebrow mt-6">Step 1 of 3 · Photos</p>
-      <h2 className="h2 mt-2">Four quick shots, so the AI sees all of your hair</h2>
-      <p className="mt-2 max-w-2xl text-muted">
-        YouCam&apos;s hair detectors read curl pattern and frizz from three angles, density from your parting, and length from the front. Loose hair, even light,
-        no hat. We auto-frame each photo for you.
+    <>
+    <section className="mx-auto max-w-5xl px-4 sm:px-6 pt-8">
+      <h1 className="h2">Take four quick photos</h1>
+      <p className="mt-2 max-w-2xl text-ink/75">
+        This lets the AI see all of your hair: curl pattern and frizz from three angles, density from your parting, length from the front.
       </p>
+      <ul className="mt-4 flex flex-wrap gap-2 text-sm" aria-label="Photo tips">
+        <li className="chip">💡 Even, bright light</li>
+        <li className="chip">Hair loose, not tied up</li>
+        <li className="chip">No hat or headband</li>
+        <li className="chip">We auto-frame each photo</li>
+      </ul>
 
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
         {SHOTS.map((s) => {
@@ -89,7 +94,7 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
                   </span>
                 )}
                 {p && (
-                  <button onClick={() => setPhoto(s, null)} className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs" aria-label="Remove photo">✕</button>
+                  <button onClick={() => setPhoto(s, null)} className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs" aria-label={`Remove ${GUIDE[s].title} photo`}>✕</button>
                 )}
               </div>
               <div className="p-3 flex-1 flex flex-col gap-2">
@@ -97,9 +102,9 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
                   <p className="font-medium">{GUIDE[s].title}</p>
                   <p className="receipt">{GUIDE[s].detector}</p>
                 </div>
-                <div className="mt-auto flex gap-2">
-                  <button className="btn-ghost !px-3 !py-1.5 flex-1" onClick={() => setCamFor(s)}>Camera</button>
-                  <button className="btn-ghost !px-3 !py-1.5 flex-1" onClick={() => { setUploadFor(s); fileRef.current?.click(); }}>Upload</button>
+                <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button className="btn-ghost !px-2 !py-1.5" onClick={() => setCamFor(s)} aria-label={`Take ${GUIDE[s].title} photo with camera`}>Camera</button>
+                  <button className="btn-ghost !px-2 !py-1.5" onClick={() => { setUploadFor(s); fileRef.current?.click(); }} aria-label={`Upload ${GUIDE[s].title} photo`}>Upload</button>
                 </div>
               </div>
             </div>
@@ -108,13 +113,12 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
       </div>
       <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
 
-      <div className="mt-8 flex flex-wrap items-center gap-3">
-        <button className="btn-primary" disabled={!ready} onClick={onDone}>Analyse my hair →</button>
-        <p className="text-sm text-muted">{SHOTS.filter((s) => photos[s]).length}/4 photos · tip: select all four files at once to fill the slots in order</p>
-      </div>
+      <p className="mt-4 text-sm text-muted">Uploading from your gallery? Select all four files at once and they fill the slots in order.</p>
 
       {camFor && <CameraModal shot={camFor} onClose={() => setCamFor(null)} onShot={async (b) => { const s = camFor; setCamFor(null); await accept(s, b); const next = SHOTS.find((x) => x !== s && !photos[x]); if (next) setCamFor(next); }} />}
     </section>
+    <FlowNav back={onBack} backLabel="Home" next={onDone} nextDisabled={!ready} nextLabel={ready ? "Analyse my hair →" : `${SHOTS.filter((s) => photos[s]).length} of 4 photos`} hint={ready ? "All set — analysis runs while you answer 4 questions." : "Add all four photos to continue."} />
+    </>
   );
 }
 
@@ -132,7 +136,13 @@ function CameraModal({ shot, onClose, onShot }: { shot: Shot; onClose: () => voi
         if (video.current) video.current.srcObject = s;
       })
       .catch(() => setErr("Camera unavailable — use Upload instead."));
-    return () => stream?.getTracks().forEach((t) => t.stop());
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      stream?.getTracks().forEach((t) => t.stop());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function snap() {
@@ -148,7 +158,7 @@ function CameraModal({ shot, onClose, onShot }: { shot: Shot; onClose: () => voi
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal>
+    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Camera: ${GUIDE[shot].title}`}>
       <div className="w-full max-w-md">
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-black">
           <video ref={video} autoPlay playsInline muted className="absolute inset-0 h-full w-full object-cover -scale-x-100" />

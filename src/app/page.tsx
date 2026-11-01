@@ -1,232 +1,222 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import Capture, { type CapturedPhoto } from "@/components/Capture";
-import Quiz, { Dots, porosityFrom } from "@/components/Quiz";
-import Results from "@/components/Results";
-import type { Climate, Measured, Porosity, Profile, Shot } from "@/lib/types";
-import { SHOTS } from "@/lib/types";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useApp } from "@/components/AppState";
+import { ChatIcon } from "@/components/Shell";
+import type { Measured } from "@/lib/types";
 
-type Sample = {
-  id: string;
-  name: string;
-  blurb: string;
-  measured: Measured;
-  porosity: Porosity;
-  climate: Climate | null;
-  previews: Record<string, string>;
-};
-type Hist = { date: string; frizz: number | null; density: number | null; type: string | null };
-
+type SampleCard = { id: string; name: string; blurb: string; measured: Measured };
 const SAMPLE_IDS = ["maya", "lena", "zola"];
-const HKEY = "strandlab.history";
 
-export default function Home() {
-  const [step, setStep] = useState<"home" | "capture" | "quiz" | "results">("home");
-  const [photos, setPhotos] = useState<Partial<Record<Shot, CapturedPhoto>>>({});
-  const [answers, setAnswers] = useState<(number | null)[]>([null, null, null, null]);
-  const [climate, setClimate] = useState<Climate | null>(null);
-  const [measured, setMeasured] = useState<Measured | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState("");
-  const [waiting, setWaiting] = useState(false);
-  const [samples, setSamples] = useState<Sample[]>([]);
-  const [sample, setSample] = useState<Sample | null>(null);
-  const [history, setHistory] = useState<Hist[]>([]);
-  const runId = useRef(0);
-
+export default function Landing() {
+  const { openCoach, measured } = useApp();
+  const [samples, setSamples] = useState<SampleCard[]>([]);
   useEffect(() => {
     Promise.all(SAMPLE_IDS.map((id) => fetch(`/samples/${id}/data.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null))).then((s) =>
-      setSamples(s.filter(Boolean) as Sample[]),
+      setSamples(s.filter(Boolean)),
     );
-    try {
-      setHistory(JSON.parse(localStorage.getItem(HKEY) || "[]"));
-    } catch {
-      /* private mode */
-    }
   }, []);
 
-  const go = (s: typeof step) => {
-    setStep(s);
-    window.scrollTo({ top: 0 });
-  };
-
-  async function analyze() {
-    const id = ++runId.current;
-    setAnalyzing(true);
-    setMeasured(null);
-    setError("");
-    go("quiz");
-    try {
-      const fd = new FormData();
-      SHOTS.forEach((s) => fd.append(s, photos[s]!.blob, `${s}.jpg`));
-      fd.append("boxes", JSON.stringify(Object.fromEntries(SHOTS.map((s) => [s, photos[s]!.box]))));
-      const r = await fetch("/api/analyze", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Analysis failed");
-      if (id !== runId.current) return;
-      setMeasured(j.measured);
-      const m = j.measured as Measured;
-      if (m.type || m.frizz) {
-        const h = [...history, { date: new Date().toISOString(), frizz: m.frizz?.level ?? null, density: m.density?.value ?? null, type: m.type?.mapping ?? null }].slice(-12);
-        setHistory(h);
-        try {
-          localStorage.setItem(HKEY, JSON.stringify(h));
-        } catch {
-          /* ignore */
-        }
-      }
-    } catch (e) {
-      if (id === runId.current) setError((e as Error).message);
-    }
-    if (id === runId.current) setAnalyzing(false);
-  }
-
-  useEffect(() => {
-    if (waiting && !analyzing) {
-      setWaiting(false);
-      if (measured) go("results");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waiting, analyzing, measured]);
-
-  function openSample(s: Sample) {
-    setSample(s);
-    go("results");
-  }
-
-  const profile: Profile | null = sample
-    ? { measured: sample.measured, porosity: sample.porosity, climate: sample.climate }
-    : measured
-      ? { measured, porosity: porosityFrom(answers), climate }
-      : null;
-
   return (
-    <main className="min-h-screen">
-      <header className="border-b border-line/70 bg-paper/80 backdrop-blur sticky top-0 z-40">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 h-14 flex items-center justify-between">
-          <button onClick={() => { setSample(null); go("home"); }} className="flex items-center gap-2">
-            <Logo />
-            <span className="font-serif text-xl tracking-tight">StrandLab</span>
-          </button>
-          <span className="receipt hidden sm:block">powered by YouCam Hair AI</span>
-        </div>
-      </header>
-
-      {step === "home" && (
-        <>
-          <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-14 pb-10 grid lg:grid-cols-[1.15fr_1fr] gap-10 items-center">
-            <div>
-              <p className="eyebrow">Hair diagnostics → hair-care shopping</p>
-              <h1 className="mt-3 font-serif text-4xl sm:text-6xl leading-[1.05] tracking-tight">
-                Your hair type, <em className="text-teal">measured.</em>
-                <br />
-                Then only what suits it.
-              </h1>
-              <p className="mt-5 max-w-xl text-lg text-muted">
-                Curly, wavy and frizz-prone shoppers guess at labels like 3A, &ldquo;fine&rdquo; or &ldquo;high porosity&rdquo; and buy product after product. StrandLab measures
-                your curl pattern, frizz, density and length with YouCam Hair AI, adds your porosity and today&apos;s dew point, and tells you which ingredients to look
-                for — and which to skip.
-              </p>
-              <div className="mt-7 flex flex-wrap gap-3">
-                <button className="btn-primary !px-6 !py-3" onClick={() => go("capture")}>Scan my hair (4 photos)</button>
-                <a href="#samples" className="btn-ghost !px-6 !py-3">Try a sample</a>
-              </div>
-              <p className="mt-4 receipt">Photos are sent to YouCam for analysis and are not stored by StrandLab.</p>
-            </div>
-            <HowItWorks />
-          </section>
-
-          <section id="samples" className="mx-auto max-w-6xl px-4 sm:px-6 pb-16">
-            <p className="eyebrow">Sample profiles · AI-generated people, real YouCam results</p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
-              {samples.map((s) => (
-                <button key={s.id} onClick={() => openSample(s)} className="card overflow-hidden text-left hover:-translate-y-0.5 transition">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/samples/${s.id}/front.jpg`} alt={s.name} className="aspect-[4/3] w-full object-cover object-top" />
-                  <div className="p-4">
-                    <p className="font-medium">{s.name}</p>
-                    <p className="text-sm text-muted">{s.blurb}</p>
-                    <p className="mt-2 receipt">
-                      {s.measured.type?.mapping.toUpperCase()} · frizz {s.measured.frizz?.level}/3 · {s.measured.density?.term}
-                    </p>
-                  </div>
-                </button>
-              ))}
-              {samples.length === 0 && <p className="text-sm text-muted">Samples loading…</p>}
-            </div>
-          </section>
-        </>
-      )}
-
-      {step === "capture" && (
-        <Capture photos={photos} setPhoto={(s, p) => setPhotos((x) => ({ ...x, [s]: p ?? undefined }))} onDone={analyze} onBack={() => go("home")} />
-      )}
-
-      {step === "quiz" && (
-        <>
-          <Quiz answers={answers} setAnswers={setAnswers} climate={climate} setClimate={setClimate} analyzing={analyzing} onDone={() => (analyzing ? setWaiting(true) : measured ? go("results") : null)} />
-          {waiting && (
-            <p className="mx-auto max-w-5xl px-4 sm:px-6 -mt-4 text-sm text-teal inline-flex items-center gap-2"><Dots /> Waiting for YouCam to finish…</p>
-          )}
-          {error && (
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 pb-10">
-              <div className="rounded-xl border border-clay/40 bg-clay-soft p-4 text-sm">
-                <p className="font-medium text-clay">Analysis failed</p>
-                <p className="mt-1">{error}</p>
-                <div className="mt-3 flex gap-2">
-                  <button className="btn-ghost !py-1.5" onClick={analyze}>Retry</button>
-                  <button className="btn-ghost !py-1.5" onClick={() => go("capture")}>Retake photos</button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {step === "results" && profile && (
-        <Results
-          key={sample?.id || "live"}
-          profile={profile}
-          frontUrl={sample ? `/samples/${sample.id}/front.jpg` : photos.front!.url}
-          frontBlob={sample ? null : photos.front!.blob}
-          samplePreviews={sample ? Object.fromEntries(Object.entries(sample.previews).map(([k, v]) => [k, `/samples/${sample.id}/${v}`])) : undefined}
-          history={sample ? [] : history}
-          onRestart={() => { setSample(null); setPhotos({}); setMeasured(null); setAnswers([null, null, null, null]); go("home"); }}
-          onRetake={() => { if (sample) { setSample(null); } go("capture"); }}
-        />
-      )}
-    </main>
-  );
-}
-
-function Logo() {
-  return (
-    <svg viewBox="0 0 32 32" className="h-7 w-7" aria-hidden>
-      <circle cx="16" cy="16" r="15" fill="#2F6B66" />
-      <path d="M9 23c3-4 1-8 4-11s6-1 7-4M13 25c3-4 1-8 4-11s6-1 7-4" stroke="#F6F3EE" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    ["4 photos", "front · left · right · parting", "Hair Type, Frizziness, Density & Length Detection"],
-    ["2 things a camera can't see", "porosity quiz · live dew point", "Open-Meteo weather"],
-    ["Explainable rules", "every ingredient score cites a measurement", "StrandLab rule engine"],
-    ["Shop, check, preview", "ranked kit · label checker · realistic vs ad look", "Hair Volume / Wavy Hair VTO · Gemini"],
-  ];
-  return (
-    <ol className="card p-6 space-y-5">
-      {steps.map(([t, d, api], i) => (
-        <li key={t} className="flex gap-4">
-          <span className="font-mono text-sm text-teal mt-0.5">{String(i + 1).padStart(2, "0")}</span>
-          <div>
-            <p className="font-medium">{t}</p>
-            <p className="text-sm text-muted">{d}</p>
-            <p className="receipt mt-0.5">{api}</p>
+    <>
+      {/* HERO */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-12 grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
+        <div>
+          <p className="chip text-teal-dark border-teal/30 bg-teal-soft">AI hair-care advisor · free · no account</p>
+          <h1 className="mt-5 font-serif text-4xl sm:text-6xl leading-[1.05] tracking-tight">
+            Stop guessing your hair type. <em className="text-teal">Measure it.</em>
+          </h1>
+          <p className="mt-5 max-w-xl text-lg text-ink/80">
+            <b>StrandLab</b> reads your curl pattern, frizz, density and length from four selfies, then tells you exactly which
+            ingredients and products suit your hair — and which ones to skip.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href="/scan" className="btn-primary !px-6 !py-3 !text-base">Start free scan →</Link>
+            <Link href="/samples/maya" className="btn-ghost !px-6 !py-3 !text-base">See an example result</Link>
           </div>
-        </li>
-      ))}
-    </ol>
+          <ul className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-muted" aria-label="Highlights">
+            <li className="flex items-center gap-2"><Tick /> ~2 minutes</li>
+            <li className="flex items-center gap-2"><Tick /> 4 photos</li>
+            <li className="flex items-center gap-2"><Tick /> Explained advice</li>
+            <li className="flex items-center gap-2"><Tick /> Photos not stored</li>
+          </ul>
+          {measured && (
+            <p className="mt-5 text-sm">
+              You have a scan in progress. <Link href="/results" className="text-teal underline">Open my results</Link>
+            </p>
+          )}
+        </div>
+        <HeroVisual />
+      </section>
+
+      {/* WHO / PROBLEM */}
+      <section className="border-y border-line bg-white/60">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12 grid md:grid-cols-3 gap-8">
+          <div className="md:col-span-1">
+            <p className="eyebrow">Who it&apos;s for</p>
+            <h2 className="h2 mt-2">Curly, wavy, coily and frizz-prone hair</h2>
+          </div>
+          <div className="md:col-span-2 grid sm:grid-cols-3 gap-4">
+            <Problem title="Labels assume you know your type" text="“For 3B curls”, “for fine hair”, “high porosity” — most people guess, and guess wrong." />
+            <Problem title="The same product acts differently" text="Glycerin defines curls on a mild day and causes frizz on a humid or freezing one." />
+            <Problem title="Ad photos set false expectations" text="So people abandon products that were working, and buy the next one." />
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 scroll-mt-20">
+        <p className="eyebrow">How it works</p>
+        <h2 className="h2 mt-2">Three steps, about two minutes</h2>
+        <ol className="mt-8 grid md:grid-cols-3 gap-4">
+          <Step n={1} title="Take 4 photos" time="~1 min" text="Front, left, right, and one with your head tipped forward. The camera guide and auto-framing do the rest." api="YouCam Hair Type · Frizziness · Density · Length Detection" />
+          <Step n={2} title="Answer 4 quick questions" time="~30 sec" text="A porosity check (how your hair absorbs water), plus your city for today's dew point." api="Open-Meteo live weather" />
+          <Step n={3} title="Get your personal plan" time="instant" text="Your hair profile, ingredients to look for and avoid — each with the reason — a routine, matched products, and a realistic preview." api="StrandLab rule engine · YouCam Hair VTO · Gemini" />
+        </ol>
+      </section>
+
+      {/* WHAT YOU GET */}
+      <section className="bg-white/60 border-y border-line">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
+          <p className="eyebrow">What you get</p>
+          <h2 className="h2 mt-2">Everything explained, nothing hidden</h2>
+          <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Feature icon="◎" title="Hair profile" text="Curl pattern, frizz, density and length — measured by AI, shown on simple scales." />
+            <Feature icon="✓" title="Ingredients, with reasons" text="“Avoid glycerin today: dew point is 22°C.” Every tip names the measurement behind it." />
+            <Feature icon="≡" title="Wash-day routine" text="Step-by-step routine sized to your hair: light, medium or rich products." />
+            <Feature icon="◇" title="Matched products" text="A ranked starter kit, plus a checker for any bottle you already own — just paste the label." />
+            <Feature icon="◐" title="Realistic preview" text="See the realistic result on your own photo next to what the ads promise." />
+            <Feature icon="?" title="Hair coach" text="Ask follow-up questions in plain language, any time — it knows your results." action={<button onClick={() => openCoach()} className="mt-3 text-sm text-teal font-medium hover:underline inline-flex items-center gap-1.5"><ChatIcon /> Try the coach now</button>} />
+          </div>
+        </div>
+      </section>
+
+      {/* SAMPLES */}
+      <section id="samples" className="mx-auto max-w-6xl px-4 sm:px-6 py-16 scroll-mt-20">
+        <p className="eyebrow">Sample results</p>
+        <h2 className="h2 mt-2">Explore a full result before you scan</h2>
+        <p className="mt-2 text-muted max-w-2xl">These people are AI-generated; their measurements are real YouCam Hair AI results.</p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          {samples.map((s) => (
+            <Link key={s.id} href={`/samples/${s.id}`} className="card overflow-hidden group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/samples/${s.id}/front.jpg`} alt="" className="aspect-[4/3] w-full object-cover object-top group-hover:opacity-95" />
+              <div className="p-4">
+                <p className="font-medium">{s.name} <span className="text-muted font-normal">— {s.blurb}</span></p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <span className="chip">Curl {s.measured.type?.mapping.toUpperCase()}</span>
+                  <span className="chip">Frizz {s.measured.frizz?.level}/3</span>
+                  <span className="chip">{s.measured.density?.term}</span>
+                </div>
+                <p className="mt-3 text-sm text-teal font-medium group-hover:underline">View {s.name}&apos;s results →</p>
+              </div>
+            </Link>
+          ))}
+          {samples.length === 0 && [0, 1, 2].map((i) => <div key={i} className="card h-72 skeleton" />)}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="mx-auto max-w-3xl px-4 sm:px-6 py-12 scroll-mt-20">
+        <p className="eyebrow">FAQ</p>
+        <h2 className="h2 mt-2">Questions</h2>
+        <div className="mt-6 divide-y divide-line card">
+          <Faq q="Is it free? Do I need an account?" a="Yes, it's free and there's no account. Your last results stay in this browser tab only." />
+          <Faq q="What happens to my photos?" a="They're sent to YouCam's Hair AI for measurement and are not stored by StrandLab. A small copy of your front photo stays in your browser for this session so you can revisit results." />
+          <Faq q="Why four photos?" a="Curl pattern and frizz are measured from three angles (front, left, right). Density is read from your parting, so one photo has your head tipped forward." />
+          <Faq q="What is porosity?" a="How easily your hair absorbs and holds water. It changes which ingredients work — and a camera can't see it, so we ask four quick questions." />
+          <Faq q="Why does the weather matter?" a="Humectants like glycerin pull water from the air. In very humid air hair swells and frizzes; in very dry air they pull water out of your hair. The dew point tells us which." />
+          <Faq q="Are the products real?" a="The shortlist uses a fictional demo catalogue to show how matching works. Use the label checker to test any real product you own." />
+          <Faq q="Is this medical advice?" a="No. StrandLab gives cosmetic guidance. For hair loss, scalp pain or sudden shedding, see a dermatologist." />
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
+        <div className="rounded-3xl bg-teal text-white px-6 py-10 sm:px-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div>
+            <h2 className="font-serif text-3xl">Know your hair in two minutes.</h2>
+            <p className="mt-1 text-white/80">Four photos, four questions, one clear plan.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/scan" className="btn bg-white text-teal-dark hover:bg-paper !px-6 !py-3">Start free scan</Link>
+            <button onClick={() => openCoach()} className="btn border border-white/50 hover:bg-white/10 !px-6 !py-3"><ChatIcon /> Ask the coach</button>
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function Tick() {
+  return <svg viewBox="0 0 20 20" className="h-4 w-4 text-teal shrink-0" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden><path d="M4 10.5l4 4 8-9" /></svg>;
+}
+
+function HeroVisual() {
+  return (
+    <div className="relative mx-auto w-full max-w-md" aria-hidden>
+      <div className="card overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/samples/maya/front.jpg" alt="" className="aspect-[4/5] w-full object-cover object-top" />
+      </div>
+      <div className="absolute -left-3 sm:-left-8 top-8 card px-4 py-3">
+        <p className="eyebrow">Curl pattern</p>
+        <p className="font-serif text-2xl">3B–3C</p>
+      </div>
+      <div className="absolute -right-3 sm:-right-6 top-32 card px-4 py-3">
+        <p className="eyebrow">Frizz</p>
+        <p className="font-serif text-2xl">2 / 3</p>
+      </div>
+      <div className="absolute left-4 right-4 -bottom-6 card px-4 py-3 text-sm">
+        <p className="text-clay font-medium">✕ Avoid glycerin today</p>
+        <p className="text-muted text-xs">22°C dew point — humid air makes it swell and frizz</p>
+      </div>
+    </div>
+  );
+}
+
+function Problem({ title, text }: { title: string; text: string }) {
+  return (
+    <div>
+      <p className="font-medium">{title}</p>
+      <p className="mt-1 text-sm text-muted">{text}</p>
+    </div>
+  );
+}
+
+function Step({ n, title, time, text, api }: { n: number; title: string; time: string; text: string; api: string }) {
+  return (
+    <li className="card p-6">
+      <div className="flex items-center justify-between">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal text-white font-medium">{n}</span>
+        <span className="chip">{time}</span>
+      </div>
+      <h3 className="mt-4 text-lg font-medium">{title}</h3>
+      <p className="mt-1 text-sm text-ink/75">{text}</p>
+      <p className="mt-3 receipt">{api}</p>
+    </li>
+  );
+}
+
+function Feature({ icon, title, text, action }: { icon: string; title: string; text: string; action?: React.ReactNode }) {
+  return (
+    <div className="card p-5">
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-soft text-teal-dark text-lg" aria-hidden>{icon}</span>
+      <h3 className="mt-3 font-medium">{title}</h3>
+      <p className="mt-1 text-sm text-ink/75">{text}</p>
+      {action}
+    </div>
+  );
+}
+
+function Faq({ q, a }: { q: string; a: string }) {
+  return (
+    <details className="group px-5 py-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium">
+        {q}
+        <span className="text-teal transition group-open:rotate-45 text-xl leading-none" aria-hidden>+</span>
+      </summary>
+      <p className="mt-2 text-sm text-ink/75">{a}</p>
+    </details>
   );
 }

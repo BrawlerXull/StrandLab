@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { climateFor, geocode, reverseName } from "@/lib/client";
 import type { Climate, Porosity } from "@/lib/types";
+import { FlowNav } from "./Shell";
 
 const QS: { q: string; a: [string, number][] }[] = [
   { q: "Sprinkle water on dry hair. It…", a: [["Beads up and sits on top", -1], ["Soaks in after a moment", 0], ["Soaks in instantly", 1]] },
@@ -15,13 +16,15 @@ export function porosityFrom(answers: (number | null)[]): Porosity {
   return s <= -2 ? "low" : s >= 2 ? "high" : "normal";
 }
 
-export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, analyzing }: {
+export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, onBack, analyzing, waiting }: {
   answers: (number | null)[];
   setAnswers: (a: (number | null)[]) => void;
   climate: Climate | null;
   setClimate: (c: Climate | null) => void;
   onDone: () => void;
+  onBack: () => void;
   analyzing: boolean;
+  waiting?: boolean;
 }) {
   const [city, setCity] = useState("");
   const [busy, setBusy] = useState(false);
@@ -64,30 +67,29 @@ export default function Quiz({ answers, setAnswers, climate, setClimate, onDone,
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 sm:px-6 py-10">
-      <p className="eyebrow">Step 2 of 3 · What a camera can&apos;t see</p>
-      <h2 className="h2 mt-2">Porosity and your weather</h2>
-      <p className="mt-2 max-w-2xl text-muted">
-        {analyzing ? (
-          <span className="inline-flex items-center gap-2 text-teal"><Dots /> YouCam is measuring your hair in the background…</span>
-        ) : (
-          "Your hair measurements are ready."
-        )}{" "}
-        Meanwhile: porosity decides how your hair absorbs product, and the dew point decides whether glycerin helps or causes frizz today.
+    <>
+    <section className="mx-auto max-w-5xl px-4 sm:px-6 pt-8">
+      <h1 className="h2">Two things a camera can&apos;t see</h1>
+      <p className="mt-2 max-w-2xl text-ink/75">
+        <b>Porosity</b> is how easily your hair absorbs water — it changes which products work. <b>Your weather</b> decides whether ingredients like glycerin help or cause frizz today.
       </p>
+      <div role="status" className={`mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm ${analyzing ? "bg-teal-soft text-teal-dark" : "bg-shell"}`}>
+        {analyzing ? <><Dots /> Measuring your hair with YouCam AI in the background…</> : <>✓ Hair measurements ready</>}
+      </div>
 
       <div className="mt-8 grid lg:grid-cols-[1.3fr_1fr] gap-6">
         <div className="card p-5 sm:p-6">
-          <p className="font-medium">Porosity check</p>
+          <h2 className="font-medium text-lg">1. Porosity check <span className="text-sm font-normal text-muted">· 4 questions</span></h2>
           <div className="mt-4 space-y-5">
             {QS.map((q, i) => (
               <fieldset key={i}>
-                <legend className="text-sm">{q.q}</legend>
+                <legend className="text-sm font-medium">{q.q}</legend>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {q.a.map(([label, v]) => (
                     <button
                       key={label}
                       type="button"
+                      aria-pressed={answers[i] === v}
                       onClick={() => setAnswers(answers.map((x, j) => (j === i ? v : x)))}
                       className={`rounded-full border px-3 py-1.5 text-sm transition ${answers[i] === v ? "border-teal bg-teal-soft text-teal-dark" : "border-line bg-white hover:bg-shell"}`}
                     >
@@ -102,12 +104,13 @@ export default function Quiz({ answers, setAnswers, climate, setClimate, onDone,
         </div>
 
         <div className="card p-5 sm:p-6">
-          <p className="font-medium">Today&apos;s dew point</p>
+          <h2 className="font-medium text-lg">2. Your weather <span className="text-sm font-normal text-muted">· optional</span></h2>
           <p className="mt-1 text-sm text-muted">Live from Open-Meteo. Under 4°C, glycerin pulls water out of hair; over 15°C it pulls humidity in.</p>
           <div className="mt-4 flex flex-col gap-3">
             <button className="btn-ghost" onClick={useLocation} disabled={busy}>Use my location</button>
             <form onSubmit={useCity} className="flex gap-2">
-              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="or type a city" className="flex-1 rounded-full border border-line bg-white px-4 py-2 text-sm outline-none focus:border-teal" />
+              <label htmlFor="city" className="sr-only">City</label>
+              <input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="or type a city" className="flex-1 rounded-full border border-line bg-white px-4 py-2 text-sm outline-none focus:border-teal" />
               <button className="btn-ghost" disabled={busy}>Go</button>
             </form>
             {err && <p className="text-sm text-clay">{err}</p>}
@@ -117,10 +120,16 @@ export default function Quiz({ answers, setAnswers, climate, setClimate, onDone,
         </div>
       </div>
 
-      <div className="mt-8 flex items-center gap-3">
-        <button className="btn-primary" disabled={!done} onClick={onDone}>{analyzing ? "See my results (finishing…)" : "See my results →"}</button>
-      </div>
     </section>
+    <FlowNav
+      back={onBack}
+      backLabel="Photos"
+      next={onDone}
+      nextDisabled={!done || waiting}
+      nextLabel={waiting ? "Finishing analysis…" : "See my results →"}
+      hint={!done ? `Answer all 4 porosity questions (${answers.filter((a) => a !== null).length}/4)` : analyzing ? "Results open as soon as the AI finishes." : "Ready."}
+    />
+    </>
   );
 }
 

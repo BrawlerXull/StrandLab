@@ -55,12 +55,12 @@ export default function Preview({ measured, frontUrl, frontBlob, samplePreviews 
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Expectation check · YouCam {plan.feature === "hair-vol" ? "Hair Volume" : "Wavy Hair"} VTO</p>
-          <h2 className="h2 mt-2">What this routine can do — vs what the ad promises</h2>
+          <h2 className="h2 mt-2">Realistic result vs the ad promise</h2>
           <p className="mt-2 max-w-3xl text-muted">{plan.why} Shoppers abandon products when they expect the ad photo. Here is the realistic target, on you.</p>
         </div>
-        <div className="flex rounded-full border border-line bg-white p-1 text-sm">
+        <div className="flex rounded-full border border-line bg-white p-1 text-sm" role="group" aria-label="Preview style set">
           {(["feminine", "masculine"] as const).map((p) => (
-            <button key={p} onClick={() => setPres(p)} className={`rounded-full px-3 py-1 ${pres === p ? "bg-ink text-paper" : ""}`}>{p === "feminine" ? "Style set A" : "Style set B"}</button>
+            <button key={p} aria-pressed={pres === p} onClick={() => setPres(p)} className={`rounded-full px-3 py-1.5 ${pres === p ? "bg-ink text-paper" : ""}`}>{p === "feminine" ? "Women's styles" : "Men's styles"}</button>
           ))}
         </div>
       </div>
