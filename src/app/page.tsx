@@ -80,6 +80,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
           <p className="eyebrow">What you get</p>
           <h2 className="h2 mt-2">Everything explained, nothing hidden</h2>
+          <p className="mt-2 text-ink/75">Curious how the advice is made? <Link href="/learn" className="text-teal underline">Read the hair science and the full rule table</Link>.</p>
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <Feature icon="◎" title="Hair profile" text="Curl pattern, frizz, density and length — measured by AI, shown on simple scales." />
             <Feature icon="✓" title="Ingredients, with reasons" text="“Avoid glycerin today: dew point is 22°C.” Every tip names the measurement behind it." />

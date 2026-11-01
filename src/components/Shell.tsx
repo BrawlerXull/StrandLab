@@ -17,6 +17,7 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
 const NAV = [
   { href: "/#how", label: "How it works" },
   { href: "/#samples", label: "Sample results" },
+  { href: "/learn", label: "Hair science" },
   { href: "/#faq", label: "FAQ" },
 ];
 

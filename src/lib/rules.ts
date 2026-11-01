@@ -234,3 +234,11 @@ export const ALL_TEMPLATES: { feature: "hair-vol" | "hair-curl"; template: strin
   { feature: "hair-curl", template: "female_defined_waves_", label: "Waves · defined" },
   { feature: "hair-curl", template: "male_classic_wavy", label: "Waves · classic (masc.)" },
 ];
+
+/** What to change on a given day based on that day's peak dew point. */
+export function dayAdvice(band: Climate["band"], frizz: number): { title: string; detail: string; tone: "teal" | "amber" | "clay" } {
+  if (band === "humid")
+    return { title: "Anti-humidity day", detail: frizz >= 2 ? "Glycerin-free strong-hold gel, seal with a light oil." : "Glycerin-free styler; add hold.", tone: "amber" };
+  if (band === "dry") return { title: "Dry-air day", detail: "Skip glycerin; layer a cream or oil to hold water in.", tone: "clay" };
+  return { title: "Humectant-friendly day", detail: "Glycerin and aloe products work well today.", tone: "teal" };
+}

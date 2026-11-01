@@ -71,11 +71,24 @@ export async function faceBox(img: HTMLImageElement): Promise<FaceBox | null> {
 
 // ---- Climate (Open-Meteo: free, no key, CORS-enabled) ----
 export async function climateFor(lat: number, lon: number, place: string): Promise<Climate> {
-  const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=dew_point_2m,relative_humidity_2m&hourly=dew_point_2m&forecast_days=3&timezone=auto`;
+  const u = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=dew_point_2m,relative_humidity_2m&hourly=dew_point_2m&forecast_days=4&timezone=auto`;
   const j = await (await fetch(u)).json();
   const dp = Number(j.current.dew_point_2m);
   const hourly: number[] = (j.hourly?.dew_point_2m || []).filter((x: number | null) => x !== null);
+  // Group hourly dew point into days; the daily peak drives the routine (humidity peaks in the afternoon).
+  const byDay = new Map<string, number[]>();
+  (j.hourly?.time || []).forEach((t: string, i: number) => {
+    const v = j.hourly.dew_point_2m[i];
+    if (v === null || v === undefined) return;
+    const d = t.slice(0, 10);
+    byDay.set(d, [...(byDay.get(d) || []), v]);
+  });
+  const days = Array.from(byDay.entries()).slice(0, 4).map(([date, vals]) => {
+    const dewMax = Math.max(...vals);
+    return { date, dewMax, dewMin: Math.min(...vals), band: dewBand(dewMax) };
+  });
   return {
+    days,
     place,
     dewPointC: dp,
     humidity: Number(j.current.relative_humidity_2m),

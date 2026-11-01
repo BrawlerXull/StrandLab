@@ -16,7 +16,8 @@ export function porosityFrom(answers: (number | null)[]): Porosity {
   return s <= -2 ? "low" : s >= 2 ? "high" : "normal";
 }
 
-export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, onBack, analyzing, waiting }: {
+export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, onBack, analyzing, waiting, status }: {
+  status?: React.ReactNode;
   answers: (number | null)[];
   setAnswers: (a: (number | null)[]) => void;
   climate: Climate | null;
@@ -73,9 +74,10 @@ export default function Quiz({ answers, setAnswers, climate, setClimate, onDone,
       <p className="mt-2 max-w-2xl text-ink/75">
         <b>Porosity</b> is how easily your hair absorbs water — it changes which products work. <b>Your weather</b> decides whether ingredients like glycerin help or cause frizz today.
       </p>
+      {status ? <div className="mt-5 max-w-xl">{status}</div> : (
       <div role="status" className={`mt-4 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm ${analyzing ? "bg-teal-soft text-teal-dark" : "bg-shell"}`}>
         {analyzing ? <><Dots /> Measuring your hair with YouCam AI in the background…</> : <>✓ Hair measurements ready</>}
-      </div>
+      </div>)}
 
       <div className="mt-8 grid lg:grid-cols-[1.3fr_1fr] gap-6">
         <div className="card p-5 sm:p-6">

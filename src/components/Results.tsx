@@ -1,13 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, shortlist } from "@/lib/catalog";
+import { CATEGORIES, shopQuery, shopUrl, shortlist } from "@/lib/catalog";
 import { recommend, TAG_INFO, TYPE_MAPPINGS } from "@/lib/rules";
 import type { Profile, Rec, ScoredProduct, Tag } from "@/lib/types";
 import { useApp, type Hist } from "./AppState";
 import { ClimateBadge } from "./Quiz";
 import LabelCheck from "./LabelCheck";
 import Preview from "./Preview";
+import TracePanel from "./TracePanel";
+import { Outlook, ProgressTracker } from "./Insights";
+import ShopTools from "./ShopTools";
 import { ChatIcon } from "./Shell";
 import { Sparkle } from "./Coach";
 
@@ -69,10 +72,13 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
     const h = window.location.hash.slice(1) as TabId;
     if (TABS.some((t) => t.id === h)) setTab(h);
   }, []);
+  // Depend on the context *text* (a stable string), not on object identity, to avoid a render loop.
+  const ctxText = contextFor(profile, rec);
+  const ctxLabel = sampleName ? `${sampleName}'s sample profile` : "your measured hair profile";
   useEffect(() => {
-    setCoachContext({ label: sampleName ? `${sampleName}'s sample profile` : "your measured hair profile", text: contextFor(profile, rec) });
-    return () => setCoachContext(null);
-  }, [profile, rec, sampleName, setCoachContext]);
+    setCoachContext({ label: ctxLabel, text: ctxText });
+  }, [ctxText, ctxLabel, setCoachContext]);
+  useEffect(() => () => setCoachContext(null), [setCoachContext]);
 
   const go = (t: TabId) => {
     setTab(t);
@@ -140,10 +146,10 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
       </div>
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="pt-8">
-        {tab === "overview" && <Overview profile={profile} rec={rec} frontUrl={frontUrl} history={history} go={go} openCoach={openCoach} />}
+        {tab === "overview" && <Overview profile={profile} rec={rec} frontUrl={frontUrl} history={history} go={go} openCoach={openCoach} isSample={!!sampleName} />}
         {tab === "ingredients" && <Ingredients rec={rec} ask={openCoach} />}
-        {tab === "routine" && <Routine rec={rec} ask={openCoach} />}
-        {tab === "products" && <Products rec={rec} shop={shop} ask={openCoach} />}
+        {tab === "routine" && <Routine rec={rec} ask={openCoach} profile={profile} />}
+        {tab === "products" && <Products rec={rec} shop={shop} ask={openCoach} profile={profile} title={title} />}
         {tab === "preview" && (
           <Preview measured={profile.measured} frontUrl={frontUrl} frontBlob={frontBlob} samplePreviews={samplePreviews} action={<ExplainButton tab="preview" ask={openCoach} />} />
         )}
@@ -211,7 +217,7 @@ function history_replace(t: string) {
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 // ---------------- Overview ----------------
-function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile: Profile; rec: Rec; frontUrl: string; history: Hist[]; go: (t: TabId) => void; openCoach: (q?: string, l?: string) => void }) {
+function Overview({ profile, rec, frontUrl, history, go, openCoach, isSample }: { profile: Profile; rec: Rec; frontUrl: string; history: Hist[]; go: (t: TabId) => void; openCoach: (q?: string, l?: string) => void; isSample: boolean }) {
   const m = profile.measured;
   const tags = Object.values(rec.tags) as Rec["tags"][Tag][];
   const topSeek = tags.filter((t) => t.score > 0).sort((a, b) => b.score - a.score)[0];
@@ -243,6 +249,8 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile:
         </div>
       </section>
 
+      {profile.climate && <Outlook climate={profile.climate} frizz={m.frizz?.level ?? 1} />}
+
       {/* Measurements */}
       <section aria-labelledby="measured">
         <div className="flex items-end justify-between gap-3">
@@ -273,6 +281,8 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile:
         </div>
       </section>
 
+      <ProgressTracker history={history} isSample={isSample} />
+
       {/* Explore */}
       <section aria-labelledby="explore">
         <h2 id="explore" className="text-lg font-medium">Explore your plan</h2>
@@ -292,12 +302,7 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach }: { profile:
         </button>
       </section>
 
-      {Object.keys(m.framing).length > 0 && (
-        <details className="text-xs text-muted">
-          <summary className="cursor-pointer">Technical details (auto-framing)</summary>
-          <p className="mt-1 receipt">{Object.entries(m.framing).map(([k, v]) => `${k}: ${v}`).join(" · ")}</p>
-        </details>
-      )}
+      <TracePanel measured={m} />
     </div>
   );
 }
@@ -415,7 +420,7 @@ function TagList({ title, items, tone, ask }: { title: string; items: Rec["tags"
 }
 
 // ---------------- Routine ----------------
-function Routine({ rec, ask }: { rec: Rec; ask: (q?: string, l?: string) => void }) {
+function Routine({ rec, ask, profile }: { rec: Rec; ask: (q?: string, l?: string) => void; profile: Profile }) {
   return (
     <section aria-labelledby="rt-title">
       <SectionHead id="rt-title" title="Your wash-day routine" tab="routine" ask={ask}>
@@ -436,12 +441,14 @@ function Routine({ rec, ask }: { rec: Rec; ask: (q?: string, l?: string) => void
           </li>
         ))}
       </ol>
+      {profile.climate?.days?.length ? <div className="mt-10"><Outlook climate={profile.climate} frizz={profile.measured.frizz?.level ?? 1} /></div> : null}
     </section>
   );
 }
 
 // ---------------- Products ----------------
-function Products({ rec, shop, ask }: { rec: Rec; shop: Record<string, ScoredProduct[]>; ask: (q?: string, l?: string) => void }) {
+function Products({ rec, shop, ask, profile, title }: { rec: Rec; shop: Record<string, ScoredProduct[]>; ask: (q?: string, l?: string) => void; profile: Profile; title: string }) {
+  const fam = profile.measured.type?.family ?? "wavy";
   const kit = CATEGORIES.map((c) => shop[c][0]).filter((p) => p.match >= 50);
   const total = kit.reduce((a, p) => a + p.price, 0);
   return (
@@ -450,16 +457,17 @@ function Products({ rec, shop, ask }: { rec: Rec; shop: Record<string, ScoredPro
         The best match in each category comes first. Expand any category to compare.
         <p className="mt-2 text-sm text-ink">Your starter kit: <b>{kit.length} products · ${total}</b></p>
       </SectionHead>
+      <ShopTools rec={rec} shop={shop} profile={profile} title={title} />
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} />)}
+        {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} query={shopQuery(c, rec, fam)} />)}
         <LabelCheck rec={rec} />
       </div>
-      <p className="mt-4 text-xs text-muted">Demo catalogue of fictional products, used to show how matching works. Match % is calculated from the ingredient rules: a higher score means a better fit for your profile.</p>
+      <p className="mt-4 text-xs text-muted">The ranked cards use a demo catalogue of fictional products to show how matching works; “Shop real … like this” searches real retailers with the same rules. Match % is calculated from the ingredient rules.</p>
     </section>
   );
 }
 
-function CategoryCard({ category, items }: { category: string; items: ScoredProduct[] }) {
+function CategoryCard({ category, items, query }: { category: string; items: ScoredProduct[]; query: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="card p-5 flex flex-col">
@@ -471,6 +479,10 @@ function CategoryCard({ category, items }: { category: string; items: ScoredProd
           {open ? "Show less" : `Compare ${items.length - 1} more`}
         </button>
       )}
+      <a href={shopUrl(query)} target="_blank" rel="noopener noreferrer" className="mt-4 pt-3 border-t border-line text-sm font-medium text-teal hover:underline">
+        Shop real {category} like this ↗<span className="block text-xs font-normal text-muted">Searches “{query}”</span>
+        <span className="sr-only">(opens in a new tab)</span>
+      </a>
     </div>
   );
 }

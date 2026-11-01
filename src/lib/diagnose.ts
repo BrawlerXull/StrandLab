@@ -1,32 +1,53 @@
-// Runs the four YouCam hair detectors in parallel with an auto-framing retry ladder.
+// Runs the YouCam hair detectors with an auto-framing retry ladder and records a trace of every call.
 // Failed tasks (bad framing) do not consume units, so retrying with a different crop is free.
+// Split into three independent parts so the browser can run them as parallel requests
+// (each gets its own serverless time budget) and show live progress.
 import "server-only";
 import { cropAround, pad, topCrop } from "./frame";
 import { familyOf, lengthBand, TYPE_MAPPINGS } from "./rules";
-import type { FaceBox, Measured, Shot } from "./types";
+import type { FaceBox, Measured, Part, PartResult, Shot, TraceEntry } from "./types";
 import { hairDensity, hairFrizz, hairLength, hairType, YouCamError } from "./youcam";
 
-export type Photos = Record<Shot, { buf: Buffer; box: FaceBox | null }>;
+export type Photos = Partial<Record<Shot, { buf: Buffer; box: FaceBox | null }>>;
 
 const HINTS: Record<string, string> = {
   error_face_position_too_small: "Move closer — your face should fill about two-thirds of the frame width.",
   error_face_position_out_of_boundary: "Step back a little so your whole head and hair fit in the frame.",
-  error_face_angle_invalid: "Angle not recognised. Front: look straight ahead. Sides: turn ~45°. Crown: tip your head forward so the parting shows.",
-  error_no_face: "No face found. Keep your face visible (even in the tilted shot).",
+  error_face_angle_invalid: "Angle not recognised. Front: look straight ahead. Sides: turn ~45°. Tip-forward: lower your chin so the parting shows, face still visible.",
+  error_no_face: "No face found. Keep your face visible (even in the tipped-forward shot).",
   error_pose: "Hold still and keep your head upright.",
+  error_mismatch_image_size: "The three angle photos must come from the same camera — retake them together.",
 };
 const hint = (code: string) => HINTS[code] || "YouCam could not read this photo. Try brighter, even light.";
 const codeOf = (e: unknown) => (e instanceof YouCamError ? e.code : "unknown");
 
-/** Try fn on successive framings; move tighter on "too small" and looser on "out of boundary". */
-async function ladder<T>(fracs: number[], make: (frac: number) => Promise<T>, start = Math.floor(fracs.length / 2)): Promise<{ value: T; frac: number }> {
+/** Runs one YouCam attempt and records it in the trace entry. */
+async function attempt<T>(entry: TraceEntry, variant: string, fn: () => Promise<T>): Promise<T> {
+  const t0 = Date.now();
+  try {
+    const v = await fn();
+    entry.attempts.push({ variant, outcome: "success", ms: Date.now() - t0 });
+    return v;
+  } catch (e) {
+    entry.attempts.push({ variant, outcome: codeOf(e), ms: Date.now() - t0 });
+    throw e;
+  }
+}
+
+const newEntry = (api: string, detector: string, input: string): TraceEntry => ({ api, detector, input, attempts: [] });
+
+const HEAD_FRACS = [0.45, 0.52, 0.6, 0.68, 0.76];
+
+/** Walk crops: tighter on "too small", looser on "out of boundary". */
+async function ladder<T>(entry: TraceEntry, make: (frac: number) => Promise<T>, start = 2): Promise<{ value: T; frac: number }> {
   let i = start;
   const tried = new Set<number>();
   let last: unknown;
-  while (i >= 0 && i < fracs.length && !tried.has(i)) {
+  while (i >= 0 && i < HEAD_FRACS.length && !tried.has(i)) {
     tried.add(i);
     try {
-      return { value: await make(fracs[i]), frac: fracs[i] };
+      const f = HEAD_FRACS[i];
+      return { value: await attempt(entry, `head crop, face ≈ ${Math.round(f * 100)}% of width`, () => make(f)), frac: f };
     } catch (e) {
       last = e;
       const c = codeOf(e);
@@ -38,87 +59,111 @@ async function ladder<T>(fracs: number[], make: (frac: number) => Promise<T>, st
   throw last;
 }
 
-const HEAD_FRACS = [0.45, 0.52, 0.6, 0.68, 0.76];
-
-export async function diagnose(ph: Photos): Promise<Measured> {
-  const issues: Measured["issues"] = [];
-  const framing: Measured["framing"] = {};
-
-  const heads = async (frac: number) =>
-    Promise.all((["front", "right", "left"] as Shot[]).map((s) => cropAround(ph[s].buf, ph[s].box, frac, "head")));
-
-  // Type and frizz share the 3-angle set. Find the framing that works with type, then reuse it for frizz.
-  const typeAndFrizz = (async () => {
+/** Curl pattern + frizz from the front/right/left set (they share the same framing). */
+async function curl(ph: Photos): Promise<PartResult> {
+  const out: PartResult = { issues: [], framing: {}, trace: [] };
+  if (!ph.front || !ph.right || !ph.left) throw new Error("Front, right and left photos are required");
+  const heads = (frac: number) => Promise.all(([ph.front!, ph.right!, ph.left!]).map((p) => cropAround(p.buf, p.box, frac, "head"))) as Promise<[Buffer, Buffer, Buffer]>;
+  const te = newEntry("Hair Type Detection", "Curl pattern", "front + right + left");
+  const fe = newEntry("Hair Frizziness Detection", "Frizz", "front + right + left");
+  out.trace.push(te, fe);
+  try {
+    const t = await ladder(te, async (f) => hairType(...(await heads(f))));
+    out.framing.type = `3-angle set cropped to face ≈ ${Math.round(t.frac * 100)}% width`;
+    const idx = Math.max(0, TYPE_MAPPINGS.indexOf(t.value.mapping.toLowerCase()));
+    out.type = { mapping: t.value.mapping, term: t.value.term, index: idx, family: familyOf(idx) };
     try {
-      const t = await ladder(HEAD_FRACS, async (f) => hairType(...((await heads(f)) as [Buffer, Buffer, Buffer])));
-      framing.type = `3-angle set cropped to face ≈ ${Math.round(t.frac * 100)}% width`;
-      const fz = await ladder(HEAD_FRACS, async (f) => hairFrizz(...((await heads(f)) as [Buffer, Buffer, Buffer])), HEAD_FRACS.indexOf(t.frac)).catch((e) => {
-        issues.push({ detector: "Frizz", code: codeOf(e), hint: hint(codeOf(e)) });
-        return null;
-      });
-      if (fz) framing.frizz = `same 3-angle set, face ≈ ${Math.round(fz.frac * 100)}%`;
-      return { type: t.value, frizz: fz?.value ?? null };
+      const fz = await ladder(fe, async (f) => hairFrizz(...(await heads(f))), HEAD_FRACS.indexOf(t.frac));
+      out.framing.frizz = `same 3-angle set, face ≈ ${Math.round(fz.frac * 100)}%`;
+      out.frizz = { level: Number(fz.value.mapping), term: fz.value.term };
     } catch (e) {
-      issues.push({ detector: "Curl pattern + frizz", code: codeOf(e), hint: hint(codeOf(e)) });
-      return { type: null, frizz: null };
+      out.issues.push({ detector: "Frizz", code: codeOf(e), hint: hint(codeOf(e)) });
     }
-  })();
+  } catch (e) {
+    out.issues.push({ detector: "Curl pattern + frizz", code: codeOf(e), hint: hint(codeOf(e)) });
+  }
+  return out;
+}
 
-  // Length wants the hair over the chest — try the uncropped front first, then bust crops.
-  const length = (async () => {
-    const steps: [string, () => Promise<Buffer>][] = [
-      ["uncropped front photo", async () => ph.front.buf],
-      ["bust crop, face ≈ 40%", () => cropAround(ph.front.buf, ph.front.box, 0.4, "bust")],
-      ["bust crop, face ≈ 50%", () => cropAround(ph.front.buf, ph.front.box, 0.5, "bust")],
-    ];
-    let last: unknown;
-    for (const [label, mk] of steps) {
-      try {
-        const r = await hairLength(await mk());
-        framing.length = label;
-        return r;
-      } catch (e) {
-        last = e;
-        if (!/face_position/.test(codeOf(e))) break;
-      }
+/** Length wants the hair over the chest — uncropped front first, then bust crops. */
+async function length(ph: Photos): Promise<PartResult> {
+  const out: PartResult = { issues: [], framing: {}, trace: [] };
+  if (!ph.front) throw new Error("Front photo is required");
+  const front = ph.front;
+  const e = newEntry("Hair Length Detection", "Length", "front");
+  out.trace.push(e);
+  const steps: [string, () => Promise<Buffer>][] = [
+    ["uncropped front photo", async () => front.buf],
+    ["bust crop, face ≈ 40%", () => cropAround(front.buf, front.box, 0.4, "bust")],
+    ["bust crop, face ≈ 50%", () => cropAround(front.buf, front.box, 0.5, "bust")],
+  ];
+  let last: unknown;
+  for (const [label, mk] of steps) {
+    try {
+      const r = await attempt(e, label, async () => hairLength(await mk()));
+      out.framing.length = label;
+      out.length = { term: r.term, band: lengthBand(r.term) };
+      return out;
+    } catch (err) {
+      last = err;
+      if (!/face_position/.test(codeOf(err))) break;
     }
-    issues.push({ detector: "Length", code: codeOf(last), hint: hint(codeOf(last)) });
-    return null;
-  })();
+  }
+  out.issues.push({ detector: "Length", code: codeOf(last), hint: hint(codeOf(last)) });
+  return out;
+}
 
-  // Density reads the parting/crown from a head-tipped-forward photo with the face still visible.
-  // The detector is sensitive to framing; failed attempts are free, so walk a ladder of variants.
-  const density = (async () => {
-    const steps: [string, () => Promise<Buffer>][] = [
-      ["head-tipped photo, uncropped", async () => ph.tilt.buf],
-      ["head-tipped photo, padded", () => pad(ph.tilt.buf, 0.25)],
-      ["head-tipped photo, top 70%", () => topCrop(ph.tilt.buf, 0.7)],
-      ["head-tipped photo, face crop", () => cropAround(ph.tilt.buf, ph.tilt.box, 0.45, "bust")],
-      ["side photo (fallback)", async () => ph.right.buf],
-    ];
-    let last: unknown;
-    for (const [label, mk] of steps) {
-      try {
-        const r = await hairDensity(await mk());
-        framing.density = label;
-        return r;
-      } catch (e) {
-        last = e;
-        if (!/face_(angle|position)/.test(codeOf(e))) break;
-      }
+/** Density reads the parting from a tipped-forward photo; sensitive to framing, so walk variants. */
+async function density(ph: Photos): Promise<PartResult> {
+  const out: PartResult = { issues: [], framing: {}, trace: [] };
+  if (!ph.tilt) throw new Error("Tipped-forward photo is required");
+  const tilt = ph.tilt;
+  const e = newEntry("Hair Density Detection", "Density", ph.right ? "tipped-forward (side as fallback)" : "tipped-forward");
+  out.trace.push(e);
+  const steps: [string, () => Promise<Buffer>][] = [
+    ["tipped-forward photo, uncropped", async () => tilt.buf],
+    ["tipped-forward photo, padded", () => pad(tilt.buf, 0.25)],
+    ["tipped-forward photo, top 70%", () => topCrop(tilt.buf, 0.7)],
+    ["tipped-forward photo, face crop", () => cropAround(tilt.buf, tilt.box, 0.45, "bust")],
+  ];
+  if (ph.right) steps.push(["side photo (fallback)", async () => ph.right!.buf]);
+  let last: unknown;
+  for (const [label, mk] of steps) {
+    try {
+      const r = await attempt(e, label, async () => hairDensity(await mk()));
+      out.framing.density = label;
+      out.density = { value: parseFloat(r.mapping), term: r.term };
+      return out;
+    } catch (err) {
+      last = err;
+      if (!/face_(angle|position)/.test(codeOf(err))) break;
     }
-    issues.push({ detector: "Density", code: codeOf(last), hint: hint(codeOf(last)) });
-    return null;
-  })();
+  }
+  out.issues.push({ detector: "Density", code: codeOf(last), hint: hint(codeOf(last)) });
+  return out;
+}
 
-  const [tf, len, den] = await Promise.all([typeAndFrizz, length, density]);
-  const idx = tf.type ? Math.max(0, TYPE_MAPPINGS.indexOf(tf.type.mapping.toLowerCase())) : -1;
-  return {
-    type: tf.type ? { mapping: tf.type.mapping, term: tf.type.term, index: idx, family: familyOf(idx) } : null,
-    frizz: tf.frizz ? { level: Number(tf.frizz.mapping), term: tf.frizz.term } : null,
-    density: den ? { value: parseFloat(den.mapping), term: den.term } : null,
-    length: len ? { term: len.term, band: lengthBand(len.term) } : null,
-    issues,
-    framing,
-  };
+export const PARTS: Record<Part, { run: (ph: Photos) => Promise<PartResult>; shots: Shot[] }> = {
+  curl: { run: curl, shots: ["front", "right", "left"] },
+  length: { run: length, shots: ["front"] },
+  density: { run: density, shots: ["tilt", "right"] },
+};
+
+export function merge(parts: PartResult[]): Measured {
+  const m: Measured = { type: null, frizz: null, density: null, length: null, issues: [], framing: {}, trace: [] };
+  for (const p of parts) {
+    if (p.type) m.type = p.type;
+    if (p.frizz) m.frizz = p.frizz;
+    if (p.density) m.density = p.density;
+    if (p.length) m.length = p.length;
+    m.issues.push(...p.issues);
+    Object.assign(m.framing, p.framing);
+    m.trace!.push(...p.trace);
+  }
+  return m;
+}
+
+/** All parts at once (used by the sample builder). */
+export async function diagnose(ph: Photos): Promise<Measured> {
+  return merge(await Promise.all(Object.values(PARTS).map((p) => p.run(ph))));
 }

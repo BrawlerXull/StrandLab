@@ -18,7 +18,20 @@ export type Measured = {
   issues: { detector: string; code: string; hint: string }[];
   /** How the auto-framer had to crop for each detector (shown as a technical receipt). */
   framing: Record<string, string>;
+  /** Every YouCam call made, with each auto-framing attempt and its outcome. */
+  trace?: TraceEntry[];
 };
+
+export type TraceEntry = {
+  api: string;
+  detector: string;
+  input: string;
+  attempts: { variant: string; outcome: string; ms: number }[];
+};
+
+export type Part = "curl" | "length" | "density";
+export const PART_LIST: Part[] = ["curl", "length", "density"];
+export type PartResult = Partial<Pick<Measured, "type" | "frizz" | "density" | "length">> & Pick<Measured, "issues" | "framing"> & { trace: TraceEntry[] };
 
 export type Porosity = "low" | "normal" | "high";
 
@@ -29,6 +42,8 @@ export type Climate = {
   dewMax3d: number; // forecast high for the next 3 days
   dewMin3d: number;
   band: "dry" | "ideal" | "humid";
+  /** Daily outlook (peak dew point per day) for routine switching. */
+  days?: { date: string; dewMax: number; dewMin: number; band: "dry" | "ideal" | "humid" }[];
 };
 
 export type Profile = {

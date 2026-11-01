@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Quiz from "@/components/Quiz";
 import { useApp } from "@/components/AppState";
 import { Stepper } from "@/components/Shell";
+import AnalysisProgress from "@/components/AnalysisProgress";
 
 export default function DetailsPage() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function DetailsPage() {
         setClimate={setClimate}
         analyzing={analyzing}
         waiting={waiting}
+        status={<AnalysisProgress compact />}
         onBack={() => router.push("/scan")}
         onDone={() => (analyzing ? setWaiting(true) : measured ? router.push("/results") : null)}
       />

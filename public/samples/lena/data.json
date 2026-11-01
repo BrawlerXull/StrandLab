@@ -24,19 +24,100 @@
   "issues": [],
   "framing": {
    "type": "3-angle set cropped to face \u2248 60% width",
+   "frizz": "same 3-angle set, face \u2248 60%",
    "length": "uncropped front photo",
-   "density": "head-tipped photo, padded",
-   "frizz": "same 3-angle set, face \u2248 60%"
-  }
+   "density": "tipped-forward photo, padded"
+  },
+  "trace": [
+   {
+    "api": "Hair Type Detection",
+    "detector": "Curl pattern",
+    "input": "front + right + left",
+    "attempts": [
+     {
+      "variant": "head crop, face \u2248 60% of width",
+      "outcome": "success",
+      "ms": 33020
+     }
+    ]
+   },
+   {
+    "api": "Hair Frizziness Detection",
+    "detector": "Frizz",
+    "input": "front + right + left",
+    "attempts": [
+     {
+      "variant": "head crop, face \u2248 60% of width",
+      "outcome": "success",
+      "ms": 13932
+     }
+    ]
+   },
+   {
+    "api": "Hair Length Detection",
+    "detector": "Length",
+    "input": "front",
+    "attempts": [
+     {
+      "variant": "uncropped front photo",
+      "outcome": "success",
+      "ms": 23915
+     }
+    ]
+   },
+   {
+    "api": "Hair Density Detection",
+    "detector": "Density",
+    "input": "tipped-forward (side as fallback)",
+    "attempts": [
+     {
+      "variant": "tipped-forward photo, uncropped",
+      "outcome": "error_face_angle_invalid",
+      "ms": 26584
+     },
+     {
+      "variant": "tipped-forward photo, padded",
+      "outcome": "success",
+      "ms": 16062
+     }
+    ]
+   }
+  ]
  },
  "porosity": "low",
  "climate": {
   "place": "Oslo, NO (sample)",
   "dewPointC": -3,
   "humidity": 71,
-  "dewMax3d": 0,
+  "dewMax3d": 5,
   "dewMin3d": -6,
-  "band": "dry"
+  "band": "dry",
+  "days": [
+   {
+    "date": "2026-11-02",
+    "dewMax": -1,
+    "dewMin": -4,
+    "band": "dry"
+   },
+   {
+    "date": "2026-11-03",
+    "dewMax": 0,
+    "dewMin": -6,
+    "band": "dry"
+   },
+   {
+    "date": "2026-11-04",
+    "dewMax": 5,
+    "dewMin": 1,
+    "band": "ideal"
+   },
+   {
+    "date": "2026-11-05",
+    "dewMax": 2,
+    "dewMin": -2,
+    "band": "dry"
+   }
+  ]
  },
  "previews": {
   "hair-vol:female_natural": "vto_hair-vol_female_natural.jpg",

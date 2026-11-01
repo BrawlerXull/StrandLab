@@ -69,3 +69,41 @@ export function shortlist(rec: Rec): Record<Category, ScoredProduct[]> {
   }
   return out;
 }
+
+// ---- Real-product search: turn the rule output into a retailer-agnostic shopping query ----
+const SEEK_WORDS: Partial<Record<Tag, string>> = {
+  gentle_cleanser: "sulfate-free",
+  film_former: "strong hold",
+  protein: "protein",
+  ceramide: "ceramide",
+  heavy_butter: "shea butter",
+  light_oil: "lightweight",
+  panthenol: "panthenol",
+};
+const AVOID_WORDS: Partial<Record<Tag, string>> = {
+  sulfate: "sulfate-free",
+  humectant: "glycerin-free",
+  drying_alcohol: "alcohol-free",
+  insoluble_silicone: "silicone-free",
+  heavy_butter: "lightweight",
+  protein: "protein-free",
+};
+const CAT_WORDS: Record<Category, string> = {
+  shampoo: "shampoo",
+  conditioner: "conditioner",
+  "leave-in": "leave-in conditioner",
+  styler: "styling gel",
+  treatment: "hair mask",
+};
+
+export function shopQuery(category: Category, rec: Rec, family: string): string {
+  const tags = Object.values(rec.tags);
+  const words = new Set<string>();
+  tags.filter((t) => t.score <= -2).forEach((t) => AVOID_WORDS[t.tag] && words.add(AVOID_WORDS[t.tag]!));
+  tags.filter((t) => t.score >= 2).sort((a, b) => b.score - a.score).slice(0, 2).forEach((t) => SEEK_WORDS[t.tag] && words.add(SEEK_WORDS[t.tag]!));
+  if (category === "shampoo") words.delete("strong hold");
+  const fam = family === "straight" ? "fine hair" : `${family} hair`;
+  return [...Array.from(words).slice(0, 3), fam, CAT_WORDS[category]].join(" ");
+}
+
+export const shopUrl = (q: string) => `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}`;

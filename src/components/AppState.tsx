@@ -4,8 +4,8 @@
 // front photo are mirrored to sessionStorage so a refresh on /results doesn't lose the scan.
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { CapturedPhoto } from "./Capture";
-import type { Climate, Measured, Shot } from "@/lib/types";
-import { SHOTS } from "@/lib/types";
+import type { Climate, Measured, Part, PartResult, Shot } from "@/lib/types";
+import { PART_LIST } from "@/lib/types";
 
 export type Hist = { date: string; frizz: number | null; density: number | null; type: string | null };
 
@@ -18,6 +18,7 @@ type State = {
   setClimate: (c: Climate | null) => void;
   measured: Measured | null;
   analyzing: boolean;
+  progress: Record<Part, "idle" | "running" | "done" | "error">;
   error: string;
   startAnalysis: () => void;
   frontUrl: string | null;
@@ -60,6 +61,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [climate, setClimate] = useState<Climate | null>(null);
   const [measured, setMeasured] = useState<Measured | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [progress, setProgress] = useState<Record<Part, "idle" | "running" | "done" | "error">>({ curl: "idle", length: "idle", density: "idle" });
   const [error, setError] = useState("");
   const [frontUrl, setFrontUrl] = useState<string | null>(null);
   const [history, setHistory] = useState<Hist[]>([]);
@@ -106,31 +108,59 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setAnalyzing(true);
     setMeasured(null);
     setError("");
-    try {
+    setProgress({ curl: "running", length: "running", density: "running" });
+    // Which photos each detector group needs (keeps uploads small).
+    const SHOTS_FOR: Record<Part, Shot[]> = { curl: ["front", "right", "left"], length: ["front"], density: ["tilt", "right"] };
+    const runPart = async (part: Part): Promise<PartResult> => {
       const fd = new FormData();
-      SHOTS.forEach((s) => fd.append(s, photos[s]!.blob, `${s}.jpg`));
-      fd.append("boxes", JSON.stringify(Object.fromEntries(SHOTS.map((s) => [s, photos[s]!.box]))));
-      const r = await fetch("/api/analyze", { method: "POST", body: fd });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Analysis failed");
-      if (id !== runId.current) return;
-      const m = j.measured as Measured;
-      setMeasured(m);
-      if (m.type || m.frizz) {
-        setHistory((h) => {
-          const next = [...h, { date: new Date().toISOString(), frizz: m.frizz?.level ?? null, density: m.density?.value ?? null, type: m.type?.mapping ?? null }].slice(-12);
-          try {
-            localStorage.setItem(HKEY, JSON.stringify(next));
-          } catch {
-            /* ignore */
-          }
-          return next;
-        });
+      fd.append("part", part);
+      SHOTS_FOR[part].forEach((s) => fd.append(s, photos[s]!.blob, `${s}.jpg`));
+      fd.append("boxes", JSON.stringify(Object.fromEntries(SHOTS_FOR[part].map((s) => [s, photos[s]!.box]))));
+      try {
+        const r = await fetch("/api/analyze", { method: "POST", body: fd });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || "Analysis failed");
+        if (id === runId.current) setProgress((p) => ({ ...p, [part]: "done" }));
+        return j.result as PartResult;
+      } catch (e) {
+        if (id === runId.current) setProgress((p) => ({ ...p, [part]: "error" }));
+        throw e;
       }
-    } catch (e) {
-      if (id === runId.current) setError((e as Error).message);
+    };
+    const settled = await Promise.allSettled(PART_LIST.map(runPart));
+    if (id !== runId.current) return;
+    const ok = settled.filter((r): r is PromiseFulfilledResult<PartResult> => r.status === "fulfilled").map((r) => r.value);
+    if (!ok.length) {
+      setError((settled[0] as PromiseRejectedResult).reason?.message || "Analysis failed");
+      setAnalyzing(false);
+      return;
     }
-    if (id === runId.current) setAnalyzing(false);
+    const m: Measured = { type: null, frizz: null, density: null, length: null, issues: [], framing: {}, trace: [] };
+    for (const p of ok) {
+      if (p.type) m.type = p.type;
+      if (p.frizz) m.frizz = p.frizz;
+      if (p.density) m.density = p.density;
+      if (p.length) m.length = p.length;
+      m.issues.push(...p.issues);
+      Object.assign(m.framing, p.framing);
+      m.trace!.push(...p.trace);
+    }
+    settled.forEach((r, i) => {
+      if (r.status === "rejected") m.issues.push({ detector: PART_LIST[i], code: "request_failed", hint: "This measurement didn't finish — try again." });
+    });
+    setMeasured(m);
+    if (m.type || m.frizz) {
+      setHistory((h) => {
+        const next = [...h, { date: new Date().toISOString(), frizz: m.frizz?.level ?? null, density: m.density?.value ?? null, type: m.type?.mapping ?? null }].slice(-12);
+        try {
+          localStorage.setItem(HKEY, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    }
+    setAnalyzing(false);
   }, [photos]);
 
   const reset = useCallback(() => {
@@ -157,6 +187,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setClimate,
     measured,
     analyzing,
+    progress,
     error,
     startAnalysis,
     frontUrl,

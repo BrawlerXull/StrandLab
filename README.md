@@ -1,50 +1,101 @@
 # StrandLab: your hair type, measured
 
-**For curly, wavy and frizz-prone shoppers who keep buying products that don't suit their hair.**
+**Live demo:** https://strandlab-youcam.vercel.app (no login; installable as an app on phones)
 
-Hair-care labels assume you know whether you're "3A", "fine" or "high porosity". Most people guess, so they buy and abandon product after product. StrandLab uses **YouCam Hair AI** to measure the hair, adds the two factors a camera can't see (porosity and today's dew point), and returns a shopping list in which every ingredient is explained.
+**For curly, wavy, coily and frizz-prone shoppers who keep buying products that don't suit their hair.**
 
-## What it does
+Hair-care labels assume you know whether you're "3A", "fine" or "high porosity". Most people guess, so they buy and abandon product after product. StrandLab works in four steps:
 
-1. **4 guided photos.** Front, left, right, and head tipped forward. A MediaPipe face box is computed in the browser, and the server auto-frames each photo to what each YouCam detector expects.
-2. **Four YouCam detectors, run in parallel:**
-   | YouCam API | Input | Output |
-   |---|---|---|
-   | Hair Type Detection | front + right + left | curl pattern 1–4C (9 ranges) |
-   | Hair Frizziness Detection | front + right + left | frizz 0–3 |
-   | Hair Density Detection | head-tipped photo | density 0–3 |
-   | Hair Length Detection | front photo | length band |
-3. **Porosity quiz + live dew point** ([Open-Meteo](https://open-meteo.com), no key). Dew point decides whether humectants like glycerin help (4–15 °C), pull moisture *out* (dry air), or cause swelling and frizz (humid air).
-4. **Explainable rule engine** (`src/lib/rules.ts`). Each measurement adds or subtracts points for 14 ingredient families, and every point carries a reason that names the measurement it came from, e.g. *"22 °C dew point (humid): glycerin pulls in excess moisture → frizz"*.
-5. **Ranked shortlist** from a demo catalogue (fictional products), plus a starter kit.
-6. **Label checker.** Paste any ingredient list. Gemini maps the INCI names to the rule-engine tags, and the score itself stays deterministic.
-7. **Expectation check (YouCam Hair Volume / Wavy Hair VTO).** Shows the *realistic* result of the routine next to the *ad-campaign* result, on your own photo, so expectations are set before you buy.
-8. **Coach.** Gemini answers follow-up questions using only your measurements and the rule output.
-9. **Re-scan tracking.** Frizz and density changes since your last scan, stored only in your browser.
+1. **Measures** your hair with four YouCam Hair AI detectors.
+2. **Adds** the two things a camera can't see: porosity (a 4-question quiz) and the dew point at your location (live forecast).
+3. **Explains** which ingredient families to look for or avoid. Each recommendation names the measurement behind it.
+4. **Shops** for you with ranked products, a checker for any label you paste, and a realistic try-on next to the "ad promise".
 
-## How the YouCam APIs are chained
+> Try it in 10 seconds without photos: open **Sample results → Maya** (AI-generated person, real YouCam measurements).
 
-- One output decides the next call:
-  - **Hair Type** picks the try-on feature and templates: Wavy Hair for waves, Volume for straight, curly and coily hair.
-  - **All four measurements plus climate** drive the rule engine, and the rule engine scores products and pasted labels.
-- **Auto-framing ladder** (`src/lib/diagnose.ts`):
-  - **Type and frizz:** the detectors need the face at ~50–80% of the image width, and all three angle photos at identical pixel size. On `error_face_position_too_small` the server crops tighter; on `out_of_boundary` it crops looser.
-  - **Density and length:** the server walks a set of padding and crop variants.
-  - **Cost:** failed tasks don't consume units, so the retries are free.
-- **Caching:** results are cached by image hash, so repeat runs cost nothing.
+---
 
-## Run it
+## How StrandLab meets the judging criteria
+
+### 1. Technological implementation: six YouCam APIs, chained
+
+| YouCam API | Input | What StrandLab does with the output |
+|---|---|---|
+| **Hair Type Detection** | front + right + left | Curl family (straight → coily). Drives product weight, slip and hold rules, **and selects which try-on API and template to run** |
+| **Hair Frizziness Detection** | the same 3 angles | Frizz 0–3. Drives the film-former, drying-alcohol and cleanser rules. Re-scans track whether frizz drops |
+| **Hair Density Detection** | head-tipped-forward photo | Density 0–3. Decides whether hair can carry butters and oils |
+| **Hair Length Detection** | front photo | Adds slip and end-care rules for long hair |
+| **Hair Volume VTO** | front photo + template | "Realistic with this routine" vs "ad promise" preview |
+| **Wavy Hair VTO** | front photo + template | The same comparison for wavy patterns |
+
+Engineering details:
+
+- **Auto-framing retry ladder** (`src/lib/diagnose.ts`, `src/lib/frame.ts`):
+  - **What the detectors reject:** faces outside 50–80% of the image width (`error_face_position_too_small` / `…out_of_boundary`), sets of photos with different pixel sizes (`error_mismatch_image_size`), and framing-sensitive angles.
+  - **How StrandLab handles it:** the browser computes a face box with MediaPipe. The server then crops, pads and resizes with sharp, and walks tighter or looser framings until YouCam accepts. Rejected tasks aren't billed, so the retries cost nothing.
+- **Parallel, traced analysis.** The browser fires three requests at once (curl+frizz, length, density). Each gets its own serverless time budget, and the UI shows live progress. Every YouCam attempt is recorded and shown in **"How we measured this"**: the API, the photos used, each framing tried, the outcome and the time taken.
+- **Caching.** Results are cached by image hash, so repeat runs spend no units.
+- **An explainable rule engine** (`src/lib/rules.ts`) scores 14 ingredient families. Every score carries its reasons. **Unit tests:** `npm test` runs 14 tests with Vitest.
+- **Gemini** is used in two places. It maps a pasted INCI ingredient list to the rule-engine families, and the scoring itself stays deterministic. It also powers a coach that is grounded in the measured profile, returns follow-up questions, and offers per-section "Explain this" and per-item "Ask why" buttons. Requests rotate across API keys with failover.
+
+### 2. Design: a complete product, not a proof of concept
+
+- **Full product flow:** a landing page that explains the product, a guided 3-step scan (progress stepper, Back/Next on every step, camera with a framing guide or upload), and tabbed results (Overview · Ingredients · Routine · Products · Preview).
+- **Coach:** a slide-over coach is available on every page.
+- **Installable app (PWA):** manifest, maskable icons, service worker, offline page and install prompt.
+- **Accessibility:** skip link, ARIA tabs and dialogs, visible focus, scroll padding so focus is never hidden behind sticky bars, reduced-motion support, and layouts that work from phone to desktop.
+
+### 3. Potential impact: a real audience and a measurable outcome
+
+- **The problem:** curl type, porosity and climate change which ingredients work, and shoppers can't see any of them. The result is wasted purchases and abandoned routines.
+- **What StrandLab does about it:**
+  - **Ingredient guidance:** gives a specific "look for / avoid" list to take into any shop.
+  - **Weekly routine:** plans each day of the week from the forecast dew point (e.g. "Thursday: anti-humidity day, glycerin-free gel").
+  - **Label checker:** checks a product you already own before you buy another.
+  - **Real-product search:** builds a shopping query from the rules for each category (e.g. "glycerin-free strong hold curly hair styling gel").
+  - **Expectation setting:** shows the realistic result next to the ad promise, so people don't abandon a routine that is working.
+  - **Proof it works:** a re-scan loop (with a calendar reminder) compares frizz and density over time, stored only on your device.
+
+### 4. Quality of the idea: non-obvious API use and domain understanding
+
+- Almost every hackathon hair entry uses colour, wig or hairstyle try-on. StrandLab uses YouCam's **hair diagnostics** for **care shopping**, mirroring the Skin AI brief for a neglected category.
+- **Frizz detection × dew point** is the core insight: the same glycerin gel defines curls on a mild day and causes frizz on a humid or freezing one.
+- **Hair science page** (`/learn`): explains every measurement, porosity, the dew-point thresholds, all 14 ingredient families and the full rule table.
+
+---
+
+## Run it locally
 
 ```bash
 npm install
-cp .env.example .env.local   # add YOUCAM_API_KEY and GEMINI_API_KEYS (comma-separated, rotated)
-npm run dev
+cp .env.example .env.local   # YOUCAM_API_KEY, YOUCAM_BASE_URL, GEMINI_API_KEYS (comma-separated), GEMINI_MODEL
+npm run dev                  # http://localhost:3000
+npm test                     # rule-engine and scoring unit tests
 ```
 
-Three sample profiles (Maya, Lena, Zola) open instantly from pre-computed **real YouCam results**. The people in them are AI-generated with YouCam's own image generator, so no real person's photos are used. `scripts/build_samples.py` rebuilds them through the live API.
+`scripts/build_samples.py` rebuilds the three sample profiles through the live API (dev server on :3100).
+
+## Project map
+
+| Path | What it is |
+|---|---|
+| `src/lib/youcam.ts` | YouCam v2 client (upload → task → poll), all hair APIs |
+| `src/lib/diagnose.ts` | Detector orchestration, auto-framing ladder, call trace |
+| `src/lib/frame.ts` | sharp crops, padding and normalisation |
+| `src/lib/rules.ts` | Rule engine, try-on plan, daily advice |
+| `src/lib/catalog.ts` | Demo catalogue, scoring, real-product search query |
+| `src/app/api/*` | `analyze` · `preview` (VTO) · `label` (Gemini) · `coach` (Gemini) |
+| `src/components/*` | Scan flow, results tabs, coach, trace panel, insights |
+| `tests/` | Vitest unit tests |
 
 ## Stack
 
-Next.js 14 (App Router) · TypeScript · Tailwind · sharp · MediaPipe Tasks (face box) · YouCam API v2 · Gemini (key rotation and failover) · Open-Meteo.
+Next.js 14 (App Router) · TypeScript · Tailwind · sharp · MediaPipe Tasks · YouCam API v2 · Gemini · Open-Meteo · Vercel.
 
-*Cosmetic guidance only. For hair loss, scalp pain or sudden shedding, see a dermatologist.*
+## Notes
+
+- **Product catalogue:** the ranked products are fictional and only show how matching works. The real-product search and the label checker work with any real product.
+- **Sample people:** they are AI-generated with YouCam's image generator. Their measurements are real YouCam results.
+- **Advice:** StrandLab gives cosmetic guidance only. For hair loss, scalp pain or sudden shedding, see a dermatologist.
+
+MIT licensed, see [LICENSE](LICENSE).

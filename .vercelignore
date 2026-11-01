@@ -1,0 +1,6 @@
+fixtures/
+.env*.local
+.env
+scripts/__pycache__/
+.next/
+node_modules/

@@ -9,11 +9,17 @@ API = "http://localhost:3100"
 
 PERSONAS = {
     "maya": dict(name="Maya", blurb="Frizzy ringlets in a humid city", src="curly", porosity="normal",
-                 climate=dict(place="Miami, US (sample)", dewPointC=22, humidity=78, dewMax3d=24, dewMin3d=20, band="humid")),
+                 climate=dict(place="Miami, US (sample)", dewPointC=22, humidity=78, dewMax3d=24, dewMin3d=13, band="humid",
+                                 days=[dict(date="2026-11-02", dewMax=23, dewMin=20, band="humid"), dict(date="2026-11-03", dewMax=24, dewMin=21, band="humid"),
+                                       dict(date="2026-11-04", dewMax=17, dewMin=13, band="humid"), dict(date="2026-11-05", dewMax=14, dewMin=11, band="ideal")])),
     "lena": dict(name="Lena", blurb="Fine, flat hair through a dry winter", src="lena", porosity="low",
-                 climate=dict(place="Oslo, NO (sample)", dewPointC=-3, humidity=71, dewMax3d=0, dewMin3d=-6, band="dry")),
+                 climate=dict(place="Oslo, NO (sample)", dewPointC=-3, humidity=71, dewMax3d=5, dewMin3d=-6, band="dry",
+                                 days=[dict(date="2026-11-02", dewMax=-1, dewMin=-4, band="dry"), dict(date="2026-11-03", dewMax=0, dewMin=-6, band="dry"),
+                                       dict(date="2026-11-04", dewMax=5, dewMin=1, band="ideal"), dict(date="2026-11-05", dewMax=2, dewMin=-2, band="dry")])),
     "zola": dict(name="Zola", blurb="Dense coils that drink up moisture", src="zola", porosity="high",
-                 climate=dict(place="London, GB (sample)", dewPointC=8, humidity=82, dewMax3d=10, dewMin3d=6, band="ideal")),
+                 climate=dict(place="London, GB (sample)", dewPointC=8, humidity=82, dewMax3d=10, dewMin3d=3, band="ideal",
+                                 days=[dict(date="2026-11-02", dewMax=9, dewMin=6, band="ideal"), dict(date="2026-11-03", dewMax=10, dewMin=7, band="ideal"),
+                                       dict(date="2026-11-04", dewMax=6, dewMin=3, band="ideal"), dict(date="2026-11-05", dewMax=3, dewMin=0, band="dry")])),
 }
 FRONT_CASC = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 PROF_CASC = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_profileface.xml")
