@@ -1,0 +1,46 @@
+{
+ "id": "zola",
+ "name": "Zola",
+ "blurb": "Dense coils that drink up moisture",
+ "measured": {
+  "type": {
+   "mapping": "4B to 4C",
+   "term": "Coily to Extremely Coily",
+   "index": 8,
+   "family": "coily"
+  },
+  "frizz": {
+   "level": 1,
+   "term": "Slightly Frizzy"
+  },
+  "density": {
+   "value": 2.61,
+   "term": "High Density"
+  },
+  "length": {
+   "term": "short hair",
+   "band": "short"
+  },
+  "issues": [],
+  "framing": {
+   "density": "head-tipped photo, uncropped",
+   "length": "uncropped front photo",
+   "type": "3-angle set cropped to face \u2248 60% width",
+   "frizz": "same 3-angle set, face \u2248 60%"
+  }
+ },
+ "porosity": "high",
+ "climate": {
+  "place": "London, GB (sample)",
+  "dewPointC": 8,
+  "humidity": 82,
+  "dewMax3d": 10,
+  "dewMin3d": 6,
+  "band": "ideal"
+ },
+ "previews": {
+  "hair-vol:female_subtle": "vto_hair-vol_female_subtle.jpg",
+  "hair-vol:female_maximized": "vto_hair-vol_female_maximized.jpg",
+  "hair-vol:female_natural": "vto_hair-vol_female_natural.jpg"
+ }
+}

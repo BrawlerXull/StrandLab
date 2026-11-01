@@ -1,0 +1,46 @@
+{
+ "id": "maya",
+ "name": "Maya",
+ "blurb": "Frizzy ringlets in a humid city",
+ "measured": {
+  "type": {
+   "mapping": "3B to 3C",
+   "term": "Medium to Tight Curls",
+   "index": 5,
+   "family": "curly"
+  },
+  "frizz": {
+   "level": 2,
+   "term": "Frizzy"
+  },
+  "density": {
+   "value": 2.82,
+   "term": "High Density"
+  },
+  "length": {
+   "term": "above chest",
+   "band": "medium"
+  },
+  "issues": [],
+  "framing": {
+   "density": "head-tipped photo, uncropped",
+   "type": "3-angle set cropped to face \u2248 60% width",
+   "length": "bust crop, face \u2248 40%",
+   "frizz": "same 3-angle set, face \u2248 60%"
+  }
+ },
+ "porosity": "normal",
+ "climate": {
+  "place": "Miami, US (sample)",
+  "dewPointC": 22,
+  "humidity": 78,
+  "dewMax3d": 24,
+  "dewMin3d": 20,
+  "band": "humid"
+ },
+ "previews": {
+  "hair-vol:female_subtle": "vto_hair-vol_female_subtle.jpg",
+  "hair-vol:female_maximized": "vto_hair-vol_female_maximized.jpg",
+  "hair-vol:female_natural": "vto_hair-vol_female_natural.jpg"
+ }
+}

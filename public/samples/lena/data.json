@@ -1,0 +1,46 @@
+{
+ "id": "lena",
+ "name": "Lena",
+ "blurb": "Fine, flat hair through a dry winter",
+ "measured": {
+  "type": {
+   "mapping": "1 to 2A",
+   "term": "Straight to Slight Wavy",
+   "index": 0,
+   "family": "straight"
+  },
+  "frizz": {
+   "level": 1,
+   "term": "Slightly Frizzy"
+  },
+  "density": {
+   "value": 2.01,
+   "term": "Medium Density"
+  },
+  "length": {
+   "term": "above chest",
+   "band": "medium"
+  },
+  "issues": [],
+  "framing": {
+   "type": "3-angle set cropped to face \u2248 60% width",
+   "length": "uncropped front photo",
+   "density": "head-tipped photo, padded",
+   "frizz": "same 3-angle set, face \u2248 60%"
+  }
+ },
+ "porosity": "low",
+ "climate": {
+  "place": "Oslo, NO (sample)",
+  "dewPointC": -3,
+  "humidity": 71,
+  "dewMax3d": 0,
+  "dewMin3d": -6,
+  "band": "dry"
+ },
+ "previews": {
+  "hair-vol:female_natural": "vto_hair-vol_female_natural.jpg",
+  "hair-vol:female_maximized": "vto_hair-vol_female_maximized.jpg",
+  "hair-vol:female_medium": "vto_hair-vol_female_medium.jpg"
+ }
+}
