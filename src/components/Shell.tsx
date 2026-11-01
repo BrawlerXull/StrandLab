@@ -29,39 +29,48 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur safe-top">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 btn-dark">Skip to content</a>
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 rounded-lg" aria-label="StrandLab home">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+        <Link href="/" className="flex shrink-0 items-center gap-2 rounded-lg" aria-label="StrandLab home">
           <Logo />
-          <span className="font-serif text-xl tracking-tight">StrandLab</span>
-          <span className="hidden md:inline text-xs text-muted border-l border-line pl-2 ml-1">AI hair-care advisor</span>
+          <span className="font-serif text-xl tracking-tight whitespace-nowrap">StrandLab</span>
+          <span className="hidden 2xl:inline whitespace-nowrap text-xs text-muted border-l border-line pl-2 ml-1">AI hair-care advisor</span>
         </Link>
-        <nav aria-label="Main" className="hidden lg:flex items-center gap-1">
+
+        <nav aria-label="Main" className="hidden xl:flex flex-1 items-center justify-center gap-1">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="rounded-full px-3 py-2 text-sm text-muted hover:text-ink hover:bg-shell">{n.label}</Link>
+            <Link key={n.href} href={n.href} className="whitespace-nowrap rounded-full px-3.5 py-2 text-sm text-muted hover:text-ink hover:bg-shell">{n.label}</Link>
           ))}
           {measured && (
-            <Link href="/results" className={`rounded-full px-3 py-2 text-sm hover:bg-shell ${path === "/results" ? "text-ink font-medium" : "text-muted"}`}>My results</Link>
+            <Link
+              href="/results"
+              aria-current={path === "/results" ? "page" : undefined}
+              className={`whitespace-nowrap rounded-full px-3.5 py-2 text-sm hover:bg-shell ${path === "/results" ? "bg-shell text-ink font-medium" : "text-muted"}`}
+            >
+              My results
+            </Link>
           )}
         </nav>
-        <div className="flex items-center gap-2">
+
+        <div className="ml-auto xl:ml-0 flex shrink-0 items-center gap-2">
           {canInstall && (
-            <button onClick={install} className="btn-ghost !px-3 hidden md:inline-flex" aria-label="Install StrandLab as an app">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg> Install app
+            <button onClick={install} className="btn-ghost h-10 !px-3 hidden md:inline-flex whitespace-nowrap" aria-label="Install StrandLab as an app" title="Install app">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
+              <span className="hidden 2xl:inline">Install app</span>
             </button>
           )}
-          <button onClick={() => openCoach()} className="btn-ghost !px-3 sm:!px-4" aria-label="Ask the hair coach">
+          <button onClick={() => openCoach()} className="btn-ghost h-10 !px-3 sm:!px-4 whitespace-nowrap" aria-label="Ask the hair coach">
             <ChatIcon /> <span className="hidden sm:inline">Ask the coach</span>
           </button>
           {!inFlow && (
-            <Link href="/scan" className="btn-primary hidden sm:inline-flex">Start free scan</Link>
+            <Link href="/scan" className="btn-primary h-10 hidden sm:inline-flex whitespace-nowrap">Start free scan</Link>
           )}
-          <button className="lg:hidden btn-ghost !px-3" aria-expanded={menu} aria-controls="mobile-nav" onClick={() => setMenu(!menu)} aria-label="Menu">
+          <button className="xl:hidden btn-ghost h-10 !px-3" aria-expanded={menu} aria-controls="mobile-nav" onClick={() => setMenu(!menu)} aria-label="Menu">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d={menu ? "M6 6l12 12M18 6L6 18" : "M4 7h16M4 12h16M4 17h16"} /></svg>
           </button>
         </div>
       </div>
       {menu && (
-        <nav id="mobile-nav" aria-label="Mobile" className="lg:hidden border-t border-line bg-paper px-4 py-3 flex flex-col">
+        <nav id="mobile-nav" aria-label="Mobile" className="xl:hidden border-t border-line bg-paper px-4 py-3 flex flex-col">
           {[...NAV, ...(measured ? [{ href: "/results", label: "My results" }] : []), { href: "/scan", label: "Start free scan" }].map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="rounded-lg px-3 py-3 text-base hover:bg-shell">{n.label}</Link>
           ))}
