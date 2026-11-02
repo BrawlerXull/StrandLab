@@ -10,6 +10,40 @@
 **Live demo:** https://strandlab-youcam.vercel.app (no login needed). Fastest look, no photos: https://strandlab-youcam.vercel.app/samples
 **Repo:** https://github.com/BrawlerXull/StrandLab
 
+## Text description (features, functionality, consumer and retail value)
+
+**StrandLab measures your hair with YouCam Hair AI and tells you exactly what to buy, on our site or inside any online store.**
+
+**The problem.** Hair-care labels say "for 3B curls", "for fine hair" or "for high porosity", but most shoppers don't know which of those they are. So they guess, buy a product, find it doesn't work, and buy another. Curly, wavy and coily shoppers are hit hardest, and the weather makes it worse: the same glycerin gel defines curls on a mild day and causes frizz on a humid one.
+
+**How it works**
+- **Measure:** the shopper takes four guided photos. A live camera guide speaks corrections and takes each photo automatically. Four YouCam APIs then run in parallel: **Hair Type, Hair Frizziness, Hair Density and Hair Length Detection**. An auto-framing step re-crops any photo YouCam rejects, so real-world selfies still get measured.
+- **Add context:** a 4-question porosity check and the live dew point at the shopper's location cover what a camera can't see.
+- **Explain:** an explainable rule engine scores 14 ingredient families.
+  - The **Ingredients** tab lists what to look for and avoid, each with the measurement behind it.
+  - The **Routine** tab gives four wash-day steps, each with its reason.
+  - The Overview plans every day of the week from the forecast.
+- **Shop:** a ranked starter kit, real-product searches localised to the shopper's country, and a label checker. The shopper can photograph any bottle in a shop and get a "Good fit / Okay / Skip it" verdict with a match score.
+- **Set expectations:** YouCam's **Hair Volume** and **Wavy Hair** try-ons show the realistic result of the routine next to the "ad promise", on the shopper's own photo.
+- **Ask:** a coach grounded in the shopper's measurements answers in 17 languages, by voice or text, and can read its answers aloud.
+
+**Consumer value.** Shoppers stop guessing and stop wasting money on products that were never right for them. Every recommendation is explained, and a re-scan loop shows whether frizz actually dropped. StrandLab is free, needs no login, and installs as a **PWA** from the browser with no app store. That puts it on the home screen in the store aisle, with camera access for scans and label photos, and offline fallback.
+
+**Accessibility.** The app reaches more people than a typical beauty tool:
+- a no-photo check for people who can't or won't share a selfie
+- a hands-free spoken camera guide
+- voice in and voice out, and 17 languages
+- bigger text and a high-contrast mode
+- 0 axe-core WCAG 2.1 AA violations across every page
+
+**Retail value.** One `<script>` tag adds a "Find my hair match" button to any store's product pages.
+- The shopper matches once, without leaving the store, and **every product on the page shows a personal match badge**.
+- The store's code receives the result (match %, reasons, look-for and avoid lists) as JavaScript events it can use to sort, recommend or bundle products.
+- Photos never reach the store.
+- Badges are scored in the browser, so they cost nothing per page view.
+
+For retailers, that means more confident purchases, fewer returns of products that didn't suit the shopper, and real hair data for personalisation.
+
 ## Inspiration
 Curly, wavy and coily shoppers famously buy and abandon dozens of products. Labels say "for 3B curls", "for fine hair" or "for high porosity", but most people don't know which of those they are. And the same product changes behaviour with the weather: a glycerin gel that defines curls on a mild day causes frizz on a humid or freezing one.
 
