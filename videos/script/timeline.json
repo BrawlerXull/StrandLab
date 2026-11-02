@@ -1,5 +1,5 @@
 {
- "total": 163.383,
+ "total": 177.787,
  "scenes": [
   {
    "id": "s01_hook",
@@ -102,8 +102,25 @@
    ]
   },
   {
-   "id": "s06_coach",
+   "id": "s05b_tabs",
    "start": 77.366,
+   "duration": 15.004,
+   "lines": [
+    {
+     "cap": "The Ingredients tab is my label cheat sheet: what to look for, what to avoid, and why, based on my measurements.",
+     "start": 0.3,
+     "end": 7.576
+    },
+    {
+     "cap": "The Routine tab turns it into four wash-day steps: cleanse, condition, leave-in and style, each with its reason.",
+     "start": 7.856,
+     "end": 14.604
+    }
+   ]
+  },
+  {
+   "id": "s06_coach",
+   "start": 92.37,
    "duration": 8.523,
    "lines": [
     {
@@ -120,7 +137,7 @@
   },
   {
    "id": "s07_shop",
-   "start": 85.889,
+   "start": 100.893,
    "duration": 11.961,
    "lines": [
     {
@@ -137,7 +154,7 @@
   },
   {
    "id": "s08_preview",
-   "start": 97.85,
+   "start": 112.854,
    "duration": 6.926,
    "lines": [
     {
@@ -149,7 +166,7 @@
   },
   {
    "id": "s09_store",
-   "start": 104.776,
+   "start": 119.78,
    "duration": 18.776,
    "lines": [
     {
@@ -171,7 +188,7 @@
   },
   {
    "id": "s10_pwa",
-   "start": 123.552,
+   "start": 138.557,
    "duration": 13.656,
    "lines": [
     {
@@ -188,7 +205,7 @@
   },
   {
    "id": "s11_access",
-   "start": 137.208,
+   "start": 152.212,
    "duration": 13.776,
    "lines": [
     {
@@ -205,8 +222,8 @@
   },
   {
    "id": "s12_close",
-   "start": 150.984,
-   "duration": 12.4,
+   "start": 165.988,
+   "duration": 11.8,
    "lines": [
     {
      "cap": "Your hair, measured by YouCam, explained in plain words, and ready for any store.",

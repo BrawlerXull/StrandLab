@@ -95,6 +95,21 @@
       ]
     },
     {
+      "id": "s05b_tabs",
+      "lead": 0.3,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "The Ingredients tab is my label cheat sheet: what to look for, what to avoid, and why, based on my measurements.",
+          "cap": "The Ingredients tab is my label cheat sheet: what to look for, what to avoid, and why, based on my measurements."
+        },
+        {
+          "say": "The Routine tab turns it into four wash-day steps, cleanse, condition, leave-in and style, each with its reason.",
+          "cap": "The Routine tab turns it into four wash-day steps: cleanse, condition, leave-in and style, each with its reason."
+        }
+      ]
+    },
+    {
       "id": "s06_coach",
       "lead": 0.3,
       "tail": 0.5,
@@ -187,7 +202,7 @@
     {
       "id": "s12_close",
       "lead": 0.4,
-      "tail": 2.2,
+      "tail": 1.6,
       "lines": [
         {
           "say": "Your hair, measured by YouCam, explained in plain words, and ready for any store.",

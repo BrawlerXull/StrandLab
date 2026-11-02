@@ -119,129 +119,153 @@ You can see every YouCam call,
 and every photo that auto-framing rescued.
 
 31
-00:01:17,667 --> 00:01:18,917
-Confused by any of it?
+00:01:17,667 --> 00:01:20,572
+The Ingredients tab is my label cheat sheet:
 
 32
-00:01:18,937 --> 00:01:22,399
-The coach explains it in plain words, in 17 languages.
+00:01:20,592 --> 00:01:23,592
+what to look for, what to avoid, and why,
 
 33
-00:01:22,499 --> 00:01:23,649
-You can even talk to it,
+00:01:23,612 --> 00:01:25,123
+based on my measurements.
 
 34
-00:01:23,669 --> 00:01:25,570
-and have the answers read out loud.
+00:01:25,223 --> 00:01:28,268
+The Routine tab turns it into four wash-day steps:
 
 35
-00:01:26,200 --> 00:01:28,885
-Then, shopping. A ranked starter kit,
+00:01:28,288 --> 00:01:30,863
+cleanse, condition, leave-in and style,
 
 36
-00:01:28,905 --> 00:01:31,445
-and real product links for your own country.
+00:01:30,883 --> 00:01:32,151
+each with its reason.
 
 37
-00:01:31,545 --> 00:01:32,535
-Standing in a store?
+00:01:32,667 --> 00:01:33,917
+Confused by any of it?
 
 38
-00:01:32,555 --> 00:01:34,915
-Just photograph the bottle's ingredient list,
+00:01:33,937 --> 00:01:37,399
+The coach explains it in plain words, in 17 languages.
 
 39
-00:01:34,935 --> 00:01:37,641
-and StrandLab tells you if it suits your hair.
+00:01:37,499 --> 00:01:38,649
+You can even talk to it,
 
 40
-00:01:38,167 --> 00:01:41,325
-And YouCam's Hair Volume try-on shows what this routine
+00:01:38,669 --> 00:01:40,570
+and have the answers read out loud.
 
 41
-00:01:41,345 --> 00:01:44,473
-can realistically do, right next to the ad promise.
+00:01:41,200 --> 00:01:43,885
+Then, shopping. A ranked starter kit,
 
 42
-00:01:45,200 --> 00:01:47,435
-Now, the big one for e-commerce.
+00:01:43,905 --> 00:01:46,445
+and real product links for your own country.
 
 43
-00:01:47,455 --> 00:01:51,196
-Any online store can add StrandLab with one line of code.
+00:01:46,545 --> 00:01:47,535
+Standing in a store?
 
 44
-00:01:51,296 --> 00:01:54,756
-The shopper taps "Find my hair match", matches once,
+00:01:47,555 --> 00:01:49,915
+Just photograph the bottle's ingredient list,
 
 45
-00:01:54,776 --> 00:01:57,782
-and every product on the page shows how well it suits
+00:01:49,935 --> 00:01:52,641
+and StrandLab tells you if it suits your hair.
 
 46
-00:01:57,802 --> 00:01:58,292
-them.
+00:01:53,167 --> 00:01:56,325
+And YouCam's Hair Volume try-on shows what this routine
 
 47
-00:01:58,392 --> 00:02:00,237
-The store gets the result as an event.
+00:01:56,345 --> 00:01:59,473
+can realistically do, right next to the ad promise.
 
 48
-00:02:00,257 --> 00:02:03,156
-And the shopper's photos never leave StrandLab.
+00:02:00,200 --> 00:02:02,435
+Now, the big one for e-commerce.
 
 49
-00:02:03,967 --> 00:02:07,837
-StrandLab is also a PWA. Install it from your browser,
+00:02:02,455 --> 00:02:06,196
+Any online store can add StrandLab with one line of code.
 
 50
-00:02:07,857 --> 00:02:10,685
-and it opens full screen, just like a real app.
+00:02:06,296 --> 00:02:09,756
+The shopper taps "Find my hair match", matches once,
 
 51
-00:02:10,785 --> 00:02:13,030
-It's on your home screen in the store aisle,
+00:02:09,776 --> 00:02:12,782
+and every product on the page shows how well it suits
 
 52
-00:02:13,050 --> 00:02:14,575
-uses your phone's camera,
+00:02:12,802 --> 00:02:13,292
+them.
 
 53
-00:02:14,595 --> 00:02:17,003
-and still opens when the network drops.
+00:02:13,392 --> 00:02:15,237
+The store gets the result as an event.
 
 54
-00:02:17,533 --> 00:02:20,028
-No camera, or don't want to share a selfie?
+00:02:15,257 --> 00:02:18,156
+And the shopper's photos never leave StrandLab.
 
 55
-00:02:20,048 --> 00:02:23,044
-The no-photo check builds your plan from four picture
+00:02:18,967 --> 00:02:22,837
+StrandLab is also a PWA. Install it from your browser,
 
 56
-00:02:23,064 --> 00:02:23,820
-questions.
+00:02:22,857 --> 00:02:25,685
+and it opens full screen, just like a real app.
 
 57
-00:02:23,920 --> 00:02:26,480
-There's bigger text, a high-contrast mode,
+00:02:25,785 --> 00:02:28,030
+It's on your home screen in the store aisle,
 
 58
-00:02:26,500 --> 00:02:27,675
-voice in and out,
+00:02:28,050 --> 00:02:29,575
+uses your phone's camera,
 
 59
-00:02:27,695 --> 00:02:30,689
-and you can send your plan to your stylist instantly.
+00:02:29,595 --> 00:02:32,003
+and still opens when the network drops.
 
 60
-00:02:31,400 --> 00:02:34,965
-Your hair, measured by YouCam, explained in plain words,
+00:02:32,533 --> 00:02:35,028
+No camera, or don't want to share a selfie?
 
 61
-00:02:34,985 --> 00:02:36,499
-and ready for any store.
+00:02:35,048 --> 00:02:38,044
+The no-photo check builds your plan from four picture
 
 62
-00:02:36,599 --> 00:02:41,380
+00:02:38,064 --> 00:02:38,820
+questions.
+
+63
+00:02:38,920 --> 00:02:41,480
+There's bigger text, a high-contrast mode,
+
+64
+00:02:41,500 --> 00:02:42,675
+voice in and out,
+
+65
+00:02:42,695 --> 00:02:45,689
+and you can send your plan to your stylist instantly.
+
+66
+00:02:46,400 --> 00:02:49,965
+Your hair, measured by YouCam, explained in plain words,
+
+67
+00:02:49,985 --> 00:02:51,499
+and ready for any store.
+
+68
+00:02:51,599 --> 00:02:56,380
 This is StrandLab. Try it free at strandlab-youcam.vercel.app

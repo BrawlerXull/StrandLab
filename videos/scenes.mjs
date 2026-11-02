@@ -323,6 +323,30 @@ S.s11_access = async () => {
   composite(id);
 };
 
+// ---------- s05b: Ingredients + Routine tabs ----------
+S.s05b_tabs = async () => {
+  const sc = scene("s05b_tabs"), [l0, l1] = L(sc);
+  const { browser, page } = await resultsPage();
+  await page.addStyleTag({ content: '[aria-label="Open the StrandLab hair coach"]{display:none!important}' });
+  await scrollTo(page, "text=Your hair profile", 10, 90); await sleep(300);
+  await parkCursor(page, 700, 420);
+  const rec = new Recorder(page, "s05b_tabs"); await rec.start(); rec.mark();
+  await rec.at(l0 + 0.1); await click(page, "text=Ingredients", { ms: 550 });
+  await sleep(400); await scrollTo(page, "text=Ingredients for your hair", 900, 150);
+  await rec.at(l0 + 1.7); await hover(page, "text=Film-formers / hold", 500);
+  await rec.at(l0 + 2.6); await hover(page, "text=Gel cast locks the curl clump", 450);
+  await rec.at(l0 + 3.6); await hover(page, "text=Sulfate cleansers", 500);
+  await rec.at(l0 + 4.6); await hover(page, "text=20°C dew point (humid)", 500);
+  await rec.at(l0 + 5.6); await scrollTo(page, "text=Fatty alcohols", 900, 160);
+  await hover(page, "text=High Density: extra slip", 500);
+  await rec.at(l1 - 0.1); await click(page, "text=Routine", { ms: 550 });
+  await sleep(400); await scrollTo(page, "text=Your wash-day routine", 900, 150);
+  const steps = ["Cleanse", "Condition", "Leave-in + cream", "Style"];
+  for (let i = 0; i < 4; i++) { await rec.at(l1 + 1.6 + i * 1.05); await hover(page, "text=" + steps[i], 450); }
+  await rec.at(l1 + 5.9); await hover(page, "text=Why: Hold sets the pattern", 500);
+  await rec.at(sc.duration + 0.1); await rec.stop(); rec.encode(sc.duration); await browser.close();
+};
+
 export default S;
 const want = process.argv.slice(2);
 for (const id of want.length ? want : Object.keys(S).filter((k) => k !== "s04_details")) {
