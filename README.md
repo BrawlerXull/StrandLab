@@ -35,6 +35,7 @@ Engineering details:
   - **How StrandLab handles it:** the browser computes a face box with MediaPipe. The server then crops, pads and resizes with sharp, and walks tighter or looser framings until YouCam accepts. Rejected tasks aren't billed, so the retries cost nothing.
 - **Parallel, traced analysis.** The browser fires three requests at once (curl+frizz, length, density). Each gets its own serverless time budget, and the UI shows live progress. Every YouCam attempt is recorded and shown in **"How we measured this"**: the API, the photos used, each framing tried, the outcome and the time taken.
 - **Caching.** Results are cached by image hash, so repeat runs spend no units.
+- **Graceful degradation.** If Gemini is rate-limited, the label checker falls back to the deterministic INCI classifier, and the coach answers from the rule engine's own output instead of showing an error.
 - **An explainable rule engine** (`src/lib/rules.ts`) scores 14 ingredient families. Every score carries its reasons. **Unit tests:** `npm test` runs 14 tests with Vitest.
 - **Gemini** is used in two places. It maps a pasted INCI ingredient list to the rule-engine families, and the scoring itself stays deterministic. It also powers a coach that is grounded in the measured profile, returns follow-up questions, and offers per-section "Explain this" and per-item "Ask why" buttons. Requests rotate across API keys with failover.
 
@@ -45,6 +46,25 @@ Engineering details:
 - **Installable app (PWA):** manifest, maskable icons, service worker, offline page and install prompt.
 - **Accessibility:** skip link, ARIA tabs and dialogs, visible focus, scroll padding so focus is never hidden behind sticky bars, reduced-motion support, and layouts that work from phone to desktop.
 
+### For stores: one script tag puts StrandLab on any product page
+
+```html
+<script src="https://strandlab-youcam.vercel.app/widget.js" async></script>
+<div data-strandlab data-product="Curl Gel" data-product-id="sku-123"
+     data-ingredients="Aqua, Glycerin, Polyquaternium-11, …"></div>
+```
+
+- **Live demo store:** https://strandlab-youcam.vercel.app/store-demo (a fictional shop). **Docs:** `/for-stores`.
+- **For the shopper:**
+  - Tapping the button opens StrandLab in an isolated iframe dialog, so they never leave the store.
+  - They match once: a quick 5-question check, a sample, or their own YouCam-measured scan. The scan is shared from a first-party pop-up only after they tap **Share**.
+  - The button then shows e.g. **"82% match · suits your hair"**, and every other product button on the page gets its own badge automatically.
+- **For the store:** its code receives a `strandlab:result` event with the match, reasons, profile summary and `lookFor`/`avoid` lists, plus `strandlab:score` events for each product. Photos never reach the store.
+- **Engineering:**
+  - `public/widget.js` is about 10 KB with no dependencies, and the button styles sit in Shadow DOM so the store's CSS can't break them.
+  - Every `postMessage` is checked against the origin it came from.
+  - Products are scored in the browser by a deterministic INCI classifier (`src/lib/inci.ts`, unit-tested), so badges cost nothing per page view and never hit an AI rate limit.
+
 ### Reach and accessibility: built for a wide audience
 
 | Barrier | What StrandLab does |
@@ -53,7 +73,7 @@ Engineering details:
 | Not wanting to share selfies (privacy, no camera, head covering) | **No-photo check** (`/quick`): 4 picture-based questions build a self-reported plan, clearly labelled as lower confidence |
 | Typing an INCI list in a shop | **Photograph the label:** Gemini reads the ingredient list from the bottle photo, and the rules score it |
 | Language | The coach replies in **17 languages**, or auto-matches the language you type or speak |
-| Low vision, dyslexia, low literacy, wet hands | **Voice in** (mic) and **voice out** ("Listen") in the coach. **Text size** (3 steps) and **high-contrast** mode, remembered per device |
+| Low vision, dyslexia, low literacy, wet hands | **Voice in** (mic: recorded in the browser and transcribed by Gemini, so it works in every modern browser) and **voice out** ("Listen") in the coach. **Text size** (3 steps) and **high-contrast** mode, remembered per device |
 | Shopping outside the US | Real-product links use your country's Google Shopping region and Amazon store |
 | Getting advice to a stylist or friend | **Share my plan** via the phone share sheet, WhatsApp or email |
 

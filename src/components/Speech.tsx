@@ -1,67 +1,169 @@
 "use client";
-// Voice in (Web Speech recognition) and voice out (speechSynthesis). Both are optional browser features:
-// the buttons only render where supported, so nothing breaks elsewhere.
+// Voice in (MediaRecorder + Gemini transcription) and voice out (speechSynthesis).
+// The buttons only render where the browser supports them, so nothing breaks elsewhere.
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Minimal typing for the (still prefixed in Chrome/Safari) SpeechRecognition API.
-type Rec = {
-  lang: string;
-  interimResults: boolean;
-  continuous: boolean;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
-  onend: (() => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-  start: () => void;
-  stop: () => void;
-};
-type RecCtor = new () => Rec;
-
-function recCtor(): RecCtor | null {
-  if (typeof window === "undefined") return null;
-  const w = window as unknown as { SpeechRecognition?: RecCtor; webkitSpeechRecognition?: RecCtor };
-  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+/** Encode mono float samples as a 16-bit PCM WAV. */
+function wav(samples: Float32Array, rate: number): Blob {
+  const buf = new ArrayBuffer(44 + samples.length * 2);
+  const v = new DataView(buf);
+  const w = (o: number, t: string) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  w(0, "RIFF");
+  v.setUint32(4, 36 + samples.length * 2, true);
+  w(8, "WAVE");
+  w(12, "fmt ");
+  v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true);
+  v.setUint16(34, 16, true);
+  w(36, "data");
+  v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, samples[i])) * 0x7fff, true);
+  return new Blob([buf], { type: "audio/wav" });
 }
 
-/** Press-to-talk dictation. `onText` gets the live transcript (interim + final). */
-export function useDictation(lang: string, onText: (t: string) => void, onDone?: (t: string) => void) {
+/** Recorded blob (webm/opus, mp4/aac…) → 16 kHz mono WAV data URL (small, and every model accepts it). */
+async function toWavDataUrl(blob: Blob): Promise<string> {
+  const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const ctx = new AC();
+  const decoded = await ctx.decodeAudioData(await blob.arrayBuffer());
+  ctx.close();
+  const rate = 16000;
+  const off = new OfflineAudioContext(1, Math.max(1, Math.ceil(decoded.duration * rate)), rate);
+  const src = off.createBufferSource();
+  src.buffer = decoded;
+  src.connect(off.destination);
+  src.start();
+  const out = await off.startRendering();
+  const w = wav(out.getChannelData(0), rate);
+  return new Promise((ok) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result));
+    r.readAsDataURL(w);
+  });
+}
+
+type VoiceState = "idle" | "listening" | "transcribing";
+
+/**
+ * Voice input that works in every modern browser: records with MediaRecorder, stops automatically after
+ * ~1.5 s of silence (or on tap), and transcribes with Gemini via /api/transcribe.
+ */
+export function useVoiceInput(langId: string, onDone: (text: string) => void) {
   const [supported, setSupported] = useState(false);
-  const [listening, setListening] = useState(false);
+  const [state, setState] = useState<VoiceState>("idle");
   const [error, setError] = useState("");
-  const rec = useRef<Rec | null>(null);
-  const last = useRef("");
-  useEffect(() => setSupported(!!recCtor()), []);
+  const [level, setLevel] = useState(0);
+  const stopRef = useRef<(() => void) | null>(null);
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
 
-  const stop = useCallback(() => rec.current?.stop(), []);
-  const start = useCallback(() => {
-    const C = recCtor();
-    if (!C) return;
+  useEffect(() => {
+    setSupported(typeof window !== "undefined" && !!navigator.mediaDevices?.getUserMedia && typeof window.MediaRecorder !== "undefined");
+  }, []);
+
+  const stop = useCallback(() => stopRef.current?.(), []);
+
+  const start = useCallback(async () => {
+    if (state !== "idle") return;
     setError("");
-    const r = new C();
-    r.lang = lang || (typeof navigator !== "undefined" ? navigator.language : "en-US");
-    r.interimResults = true;
-    r.continuous = false;
-    last.current = "";
-    r.onresult = (e) => {
-      const t = Array.from(e.results).map((x) => x[0].transcript).join(" ").trim();
-      last.current = t;
-      onText(t);
-    };
-    r.onerror = (e) => setError(e.error === "not-allowed" ? "Microphone permission was blocked." : e.error === "no-speech" ? "Didn't catch that — try again." : "Voice input stopped.");
-    r.onend = () => {
-      setListening(false);
-      if (last.current && onDone) onDone(last.current);
-    };
-    rec.current = r;
-    setListening(true);
+    let stream: MediaStream;
     try {
-      r.start();
-    } catch {
-      setListening(false);
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (e) {
+      const n = (e as Error).name;
+      setError(
+        n === "NotAllowedError" || n === "SecurityError"
+          ? "Microphone is blocked. Click the icon at the left of the address bar, allow the microphone, and try again."
+          : n === "NotFoundError"
+            ? "No microphone found on this device."
+            : "Couldn't start the microphone.",
+      );
+      return;
     }
-  }, [lang, onText, onDone]);
+    const type = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"].find((t) => MediaRecorder.isTypeSupported?.(t));
+    const rec = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+    const chunks: Blob[] = [];
+    rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
 
-  useEffect(() => () => rec.current?.stop(), []);
-  return { supported, listening, error, start, stop };
+    // Silence detection: stop ~1.5 s after the user finishes speaking; give up after 8 s of nothing.
+    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const actx = new AC();
+    // Created after the permission prompt, so Chrome may start it suspended (it would then read pure silence).
+    actx.resume().catch(() => {});
+    const an = actx.createAnalyser();
+    an.fftSize = 1024;
+    actx.createMediaStreamSource(stream).connect(an);
+    const data = new Float32Array(an.fftSize);
+    const t0 = performance.now();
+    let spoke = false,
+      quietSince = 0,
+      ended = false;
+    const timer = window.setInterval(() => {
+      an.getFloatTimeDomainData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) sum += data[i] * data[i];
+      const rms = Math.sqrt(sum / data.length);
+      setLevel(Math.min(1, rms * 12));
+      const now = performance.now();
+      if (rms > 0.02) {
+        spoke = true;
+        quietSince = 0;
+      } else if (spoke) {
+        quietSince ||= now;
+        if (now - quietSince > 1500) finish();
+      }
+      if (!spoke && now - t0 > 8000) finish(true);
+      if (now - t0 > 30000) finish();
+    }, 100);
+
+    function cleanup() {
+      clearInterval(timer);
+      stream.getTracks().forEach((t) => t.stop());
+      actx.close().catch(() => {});
+      setLevel(0);
+      stopRef.current = null;
+    }
+    function finish(silent = false) {
+      if (ended) return;
+      ended = true;
+      rec.onstop = async () => {
+        cleanup();
+        if (silent && !spoke) {
+          setState("idle");
+          setError("I didn't hear anything — tap the mic and speak.");
+          return;
+        }
+        setState("transcribing");
+        try {
+          const audio = await toWavDataUrl(new Blob(chunks, { type: rec.mimeType || "audio/webm" }));
+          const r = await fetch("/api/transcribe", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ audio, lang: langId }) });
+          const j = await r.json();
+          if (!r.ok) throw new Error(j.error);
+          if (j.text) doneRef.current(j.text);
+          else setError("I couldn't make out any words — try again a little closer to the mic.");
+        } catch {
+          setError("Voice transcription failed — please type your question.");
+        }
+        setState("idle");
+      };
+      try {
+        rec.stop();
+      } catch {
+        cleanup();
+        setState("idle");
+      }
+    }
+    stopRef.current = () => finish();
+    rec.start(250);
+    setState("listening");
+  }, [state, langId]);
+
+  useEffect(() => () => stopRef.current?.(), []);
+  return { supported, state, listening: state === "listening", transcribing: state === "transcribing", error, level, start, stop };
 }
 
 /** Strip the light markdown the coach uses so it reads naturally. */

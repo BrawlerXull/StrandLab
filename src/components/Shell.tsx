@@ -15,10 +15,14 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   );
 }
 
+/** Embed surfaces (store widget iframe, connect pop-up, demo store) render without StrandLab chrome. */
+export const isBare = (p: string | null) => !!p && (p.startsWith("/widget") || p.startsWith("/connect") || p.startsWith("/store-demo"));
+
 const NAV = [
   { href: "/#how", label: "How it works" },
   { href: "/samples", label: "Sample results" },
   { href: "/learn", label: "Hair science" },
+  { href: "/for-stores", label: "For stores" },
   { href: "/#faq", label: "FAQ" },
 ];
 
@@ -28,6 +32,7 @@ export function Header() {
   const [menu, setMenu] = useState(false);
   const inFlow = path.startsWith("/scan");
   const { canInstall, iosHint, install } = useInstall();
+  if (isBare(path)) return null;
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur safe-top">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 btn-dark">Skip to content</a>
@@ -102,6 +107,8 @@ export function ChatIcon({ className = "h-4 w-4" }: { className?: string }) {
 }
 
 export function Footer() {
+  const path = usePathname();
+  if (isBare(path)) return null;
   return (
     <footer className="mt-16 border-t border-line pb-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row gap-4 justify-between text-sm text-muted">

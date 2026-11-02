@@ -23,7 +23,8 @@ YouCam's hair diagnostics can measure what people currently guess, yet almost ev
 6. **Expectation check:** YouCam Hair Volume / Wavy Hair try-on shows the realistic result of the routine next to the "ad promise", on your own photo.
 7. **Coach:** available on every page and grounded in your measurements. It offers follow-up questions, an "Explain this section" button in each section, and "Ask why" on every ingredient and step. **Ask by voice, hear answers read aloud, and get replies in 17 languages** (auto-detects the language you write or speak in: Hindi, Spanish, Portuguese, Arabic, Swahili, Yoruba and more).
 8. **Accessible to everyone:** text size and high-contrast settings, and 0 axe-core WCAG 2.1 AA violations across every page in both display modes.
-9. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
+9. **For stores (eCommerce integration):** one `<script>` tag adds a "Find my hair match" button to any store's product page. The shopper matches once, inside an isolated dialog, and every product on the page then shows a match badge. The store's code receives the result (match %, reasons, `lookFor`/`avoid`) as a JavaScript event. Photos never reach the store. Live demo store: https://strandlab-youcam.vercel.app/store-demo · docs: /for-stores.
+10. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
 
 ## How we built it
 - **App:** Next.js 14 + TypeScript + Tailwind, deployed on Vercel, installable as a PWA with offline support.
@@ -70,3 +71,4 @@ Open https://strandlab-youcam.vercel.app. No login is needed.
 - **Label photo:** Products tab → "Scan a label with your camera" (or upload a photo of any ingredient list).
 - **No-photo check:** https://strandlab-youcam.vercel.app/quick
 - **Display:** the "Aa" button in the header (text size, high contrast).
+- **Store widget:** https://strandlab-youcam.vercel.app/store-demo → "Find my hair match" → pick a sample (e.g. Maya) → Done. Every product gets a badge, and the right-hand panel shows exactly what the store's code receives.

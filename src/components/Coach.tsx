@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useApp } from "./AppState";
 import Markdown from "./Markdown";
-import { ChatIcon, Logo } from "./Shell";
+import { ChatIcon, isBare, Logo } from "./Shell";
 import { Dots } from "./Quiz";
 import { LANGS, langById } from "@/lib/langs";
-import { MicIcon, SpeakerIcon, useDictation, useSpeak } from "./Speech";
+import { MicIcon, SpeakerIcon, useSpeak, useVoiceInput } from "./Speech";
 
 const LANG_KEY = "sl-coach-lang";
 
-type Msg = { role: "user" | "coach"; text: string; label?: string; error?: boolean; followups?: string[] };
+type Msg = { role: "user" | "coach"; text: string; label?: string; error?: boolean; followups?: string[]; fallback?: boolean };
 
 const GENERAL = ["What does 3A or 4C mean?", "What is hair porosity?", "Why does glycerin make my hair frizzy?", "How does StrandLab work?"];
 const PERSONAL = ["Explain my results simply", "Why should I avoid glycerin right now?", "Build me a 3-product routine", "What should I change in humid weather?"];
@@ -54,7 +54,10 @@ export default function CoachWidget() {
   };
   const bcp = langById(lang).bcp;
   const tts = useSpeak();
-  const mic = useDictation(bcp, setQ, (t) => ask(t));
+  const mic = useVoiceInput(lang, (t) => {
+    setQ(t);
+    ask(t);
+  });
 
   // Reset the conversation when the profile it is grounded in changes.
   useEffect(() => {
@@ -103,7 +106,7 @@ export default function CoachWidget() {
         body: JSON.stringify({ context: coachContext?.text || "", question: text, history, lang }),
       });
       const j = await r.json();
-      setMsgs((m) => [...m, r.ok ? { role: "coach", text: j.answer, followups: j.followups || [] } : { role: "coach", text: j.error || "Something went wrong.", error: true }]);
+      setMsgs((m) => [...m, r.ok ? { role: "coach", text: j.answer, followups: j.followups || [], fallback: !!j.fallback } : { role: "coach", text: j.error || "Something went wrong.", error: true }]);
     } catch {
       setMsgs((m) => [...m, { role: "coach", text: "The coach is unavailable right now. Please try again.", error: true }]);
     }
@@ -112,6 +115,7 @@ export default function CoachWidget() {
 
   const starters = coachContext ? PERSONAL : GENERAL;
 
+  if (isBare(path)) return null;
   return (
     <>
       {!coachOpen && (
@@ -192,6 +196,7 @@ export default function CoachWidget() {
                 <div dir="auto" className={`max-w-[88%] rounded-2xl rounded-tl-md border px-4 py-3 text-[15px] ${m.error ? "border-clay/40 bg-clay-soft text-clay" : "border-line bg-white text-ink/90"}`}>
                   <span className="sr-only">Coach replied: </span>
                   <Markdown text={m.text} />
+                  {m.fallback && <p className="mt-2 text-[11px] text-muted">The AI coach is busy, so this answer comes straight from your StrandLab results.</p>}
                   {tts.supported && !m.error && (
                     <button
                       onClick={() => (tts.speakingId === `m${i}` ? tts.stop() : tts.speak(`m${i}`, m.text, bcp || undefined))}
@@ -240,20 +245,21 @@ export default function CoachWidget() {
                   ask(q);
                 }
               }}
-              placeholder={mic.listening ? "Listening… speak now" : "Ask about your hair, in any language…"}
+              placeholder={mic.listening ? "Listening… speak now" : mic.transcribing ? "Writing down what you said…" : "Ask about your hair, in any language…"}
               className="flex-1 resize-none rounded-2xl border border-line bg-paper px-4 py-3 text-sm outline-none focus:border-teal max-h-32"
             />
             {mic.supported && (
               <button
                 type="button"
                 onClick={() => (mic.listening ? mic.stop() : mic.start())}
-                disabled={busy}
-                className={`btn !px-3.5 !py-3 border ${mic.listening ? "border-clay bg-clay text-white animate-pulse" : "border-line bg-white hover:bg-shell"}`}
+                disabled={busy || mic.transcribing}
+                className={`btn relative !px-3.5 !py-3 border ${mic.listening ? "border-clay bg-clay text-white" : "border-line bg-white hover:bg-shell"}`}
+                style={mic.listening ? { boxShadow: `0 0 0 ${2 + Math.round(mic.level * 10)}px rgb(var(--c-clay) / 0.25)` } : undefined}
                 aria-pressed={mic.listening}
                 aria-label={mic.listening ? "Stop voice input" : "Ask by voice"}
                 title={mic.listening ? "Stop" : "Ask by voice"}
               >
-                <MicIcon />
+                {mic.transcribing ? <Dots /> : <MicIcon />}
               </button>
             )}
             <button className="btn-primary !px-4 !py-3" disabled={busy || !q.trim()} aria-label="Send question">
@@ -261,7 +267,7 @@ export default function CoachWidget() {
             </button>
           </div>
           <p className="mt-2 text-[11px] text-muted" role="status">
-            {mic.error || (mic.listening ? "Listening — I'll send when you stop talking." : "Enter to send · Shift+Enter for a new line · Esc to close. Cosmetic advice only.")}
+            {mic.error || (mic.listening ? "Listening — I'll send when you stop talking (or tap the mic)." : mic.transcribing ? "Turning your voice into text…" : "Enter to send · Shift+Enter for a new line · Esc to close. Cosmetic advice only.")}
           </p>
         </form>
       </div>

@@ -32,6 +32,7 @@ export async function generate(prompt: string, opts: { json?: boolean; system?: 
           },
         }),
         cache: "no-store",
+        signal: AbortSignal.timeout(25000),
       });
       if (res.ok) {
         const j = await res.json();

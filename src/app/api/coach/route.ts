@@ -16,7 +16,54 @@ OUTPUT: strict JSON {"answer": string (the formatted reply above, using \n for l
 
 const ABOUT = `About StrandLab (the app you live in): users take 4 photos; YouCam Hair AI measures curl pattern (1–4C), frizz (0–3), density (0–3) and length. A porosity quiz and the local dew point are added. A rule engine scores 14 ingredient families, ranks products, checks pasted ingredient labels, and shows a realistic vs "ad promise" hair preview.`;
 
+/**
+ * Fallback when Gemini is unavailable (quota / outage): answer from the rule engine's own output, which is in
+ * the context. Less conversational, but grounded and never empty.
+ */
+function fallback(context: string | undefined, question: string) {
+  const q = question.toLowerCase();
+  const line = (k: string) => (context || "").split("\n").find((l) => l.startsWith(k))?.slice(k.length).trim() || "";
+  const items = (k: string) => line(k).split(" | ").filter(Boolean);
+  if (!context?.trim()) {
+    return {
+      answer:
+        "The AI coach is busy right now, so here is the short version.\n- **Curl pattern** (1 straight → 4 coily) and **porosity** (how fast hair absorbs water) decide which ingredients work.\n- **Dew point** matters too: glycerin helps between about 4 and 15 °C and can cause frizz outside that range.\n- Run a StrandLab scan (or try a sample) and every answer becomes specific to your hair.",
+      followups: ["How does the StrandLab scan work?", "What is hair porosity?", "Why does glycerin cause frizz?"],
+    };
+  }
+  const seek = items("SEEK:"),
+    avoid = items("AVOID:"),
+    routine = items("ROUTINE:");
+  // Match the question to a specific ingredient family or routine step when possible.
+  const word = (s: string) => s.split(/[(:]/)[0].trim();
+  const STOP = new Set(["why", "should", "avoid", "look", "what", "does", "about", "with", "this", "that", "hair", "have", "will", "they", "there", "which", "from", "your", "into", "more", "less", "good", "need", "make", "makes", "using", "products", "product"]);
+  const keys = q.split(/[^a-z0-9-]+/).filter((w) => w.length > 3 && !STOP.has(w)).map((w) => w.replace(/s$/, ""));
+  const hit = [...seek.map((x) => ["look for", x] as const), ...avoid.map((x) => ["avoid", x] as const)].find(([, x]) => keys.some((k) => x.toLowerCase().includes(k)));
+  if (hit) {
+    const [verb, x] = hit;
+    return {
+      answer: `Your results say **${verb} ${word(x).toLowerCase()}**.\n- Why: ${x.split(":").slice(1).join(":").trim().split("; ").join("\n- ")}`,
+      followups: ["What should I look for on labels?", "Explain my routine simply", "What matters most for my hair?"],
+    };
+  }
+  const step = routine.find((r) => q.includes(r.split(":")[0].toLowerCase().split(" ")[0]));
+  if (step || /routine|step|wash|how do i/.test(q)) {
+    return {
+      answer: `Here is your wash-day routine, in order:\n${routine.slice(0, 5).map((r, i) => `${i + 1}. **${r.split(":")[0]}**: ${r.split(":").slice(1).join(":").trim()}`).join("\n")}`,
+      followups: ["Why should I avoid these ingredients?", "What should I look for on labels?", "What matters most for my hair?"],
+    };
+  }
+  return {
+    answer: `${line("Routine weight:").split(". Headline:")[1]?.trim() || "Here is what matters most for your hair"}.\n${[
+      ...seek.slice(0, 2).map((x) => `- **Look for ${word(x).toLowerCase()}**: ${x.split(":").slice(1).join(":").trim().split("; ")[0]}`),
+      ...avoid.slice(0, 2).map((x) => `- **Avoid ${word(x).toLowerCase()}**: ${x.split(":").slice(1).join(":").trim().split("; ")[0]}`),
+    ].join("\n")}`,
+    followups: ["Explain my routine simply", "Why avoid these ingredients?", "What should I look for on labels?"],
+  };
+}
+
 export async function POST(req: Request) {
+  let ctx: string | undefined, qText = "";
   try {
     const { context, question, history, lang } = (await req.json()) as {
       context?: string;
@@ -24,6 +71,8 @@ export async function POST(req: Request) {
       question: string;
       history?: { role: "user" | "coach"; text: string }[];
     };
+    ctx = context;
+    qText = String(question || "");
     const convo = (history || []).slice(-6).map((h) => `${h.role === "user" ? "User" : "Coach"}: ${h.text}`).join("\n");
     const grounded = !!context?.trim();
     const raw = await generate(
@@ -55,7 +104,8 @@ export async function POST(req: Request) {
       /* model returned plain text — show it as-is */
     }
     return NextResponse.json({ answer, followups });
-  } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+  } catch {
+    // Gemini quota / outage: still answer, from the rule engine's output.
+    return NextResponse.json({ ...fallback(ctx, qText), fallback: true });
   }
 }

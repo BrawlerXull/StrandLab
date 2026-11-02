@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { cached, hash } from "@/lib/cache";
 import { generate } from "@/lib/gemini";
+import { classifyInci } from "@/lib/inci";
 import { TAG_INFO } from "@/lib/rules";
 import type { Tag } from "@/lib/types";
 
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
 
     // Photo of the label: Gemini reads the ingredient list (OCR) and classifies it in one call.
     if (image) {
+      try {
       const m = /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(String(image));
       if (!m) return NextResponse.json({ error: "Unsupported image" }, { status: 400 });
       if (m[2].length > 4_000_000) return NextResponse.json({ error: "Photo is too large" }, { status: 413 });
@@ -36,18 +38,26 @@ export async function POST(req: Request) {
       });
       if (!out.found) return NextResponse.json({ error: "Couldn't read an ingredient list. Photograph the back of the bottle where it says “Ingredients”, close up and in focus." }, { status: 422 });
       return NextResponse.json(out);
+      } catch {
+        return NextResponse.json({ error: "Label reading is busy right now — please type or paste the ingredient list instead." }, { status: 503 });
+      }
     }
 
     const text = String(ingredients || "").slice(0, 4000).trim();
     if (text.length < 8) return NextResponse.json({ error: "Paste the ingredient list from the label" }, { status: 400 });
-    const out = await cached("lbl-" + hash(text), async () => {
-      const raw = await generate(
-        `Classify this hair-product ingredient list (INCI).\n\nTags:\n${tagList()}\n\nReturn JSON: {${SCHEMA}}.\n${RULES}\n\nIngredients:\n${text}`,
-        { json: true, system: "You are a cosmetic chemist. Output strict JSON only." },
-      );
-      return clean(JSON.parse(raw));
-    });
-    return NextResponse.json(out);
+    try {
+      const out = await cached("lbl-" + hash(text), async () => {
+        const raw = await generate(
+          `Classify this hair-product ingredient list (INCI).\n\nTags:\n${tagList()}\n\nReturn JSON: {${SCHEMA}}.\n${RULES}\n\nIngredients:\n${text}`,
+          { json: true, system: "You are a cosmetic chemist. Output strict JSON only." },
+        );
+        return { ...clean(JSON.parse(raw)), engine: "gemini" };
+      });
+      return NextResponse.json(out);
+    } catch {
+      // Gemini unavailable / rate-limited: the deterministic classifier keeps the checker working.
+      return NextResponse.json(classifyInci(text));
+    }
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
