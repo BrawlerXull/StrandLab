@@ -112,6 +112,30 @@ Most conversation about beauty AI is about try-on: lipstick shades, hair colours
 
 The common thread: YouCam's APIs are usually treated as a fun mirror. They're also a **sensor**, and sensors become valuable when you measure over time, add context and connect the result to a decision.
 
+## Where did you hit a wall technically? How did you work around it?
+The biggest wall was YouCam rejecting real-world selfies. The auto-framing ladder we built to get past it is described in the API answer above. Four other walls:
+
+1. **Serverless time limits.** The four detectors run as upload, then task, then poll. Add framing retries, and one analysis request blew past Vercel's function time limit.
+   **Workaround:** the browser fires three requests in parallel (curl + frizz, length, density), so each gets its own time budget. The UI shows live per-detector progress, so waiting feels like progress rather than a frozen screen. Results are cached by image hash, so a repeat run spends no API units.
+
+2. **The tipped-forward photo is hard to take alone.** Density needs your head tipped forward with your face still visible. You can't see your screen in that pose, and most attempts were rejected.
+   **Workaround:** a guided camera. MediaPipe face keypoints check distance, centring, head turn, tip angle and lighting in real time. The app **speaks** corrections ("tip a little more") and **takes the photo automatically** once the pose holds steady. The feature started as a fix for rejected photos and became one of our biggest accessibility wins.
+
+3. **AI rate limits during demos.** Gemini powers the label reader and the coach. Free-tier rate limits and occasional outages meant features could fail exactly when a judge tried them.
+   **Workarounds:**
+   - Requests rotate across API keys, with failover.
+   - Label scoring always goes through a **deterministic INCI classifier** (unit-tested), with Gemini only reading the label photo. If Gemini is down, pasted ingredient lists still get a verdict.
+   - The coach falls back to answers built from the rule engine's own reasons instead of showing an error.
+
+4. **Getting the shopper's profile into someone else's store, safely.** The widget runs on a store's domain, and browsers now partition third-party storage, so the iframe can't simply read the profile the shopper saved on our site. The store's CSS could also break our button, and any page can send `postMessage`.
+   **Workarounds:**
+   - The scan profile is shared through a **first-party pop-up**, and only after the shopper taps Share.
+   - The button lives in **Shadow DOM**, so store styles can't reach it.
+   - Every message is checked against its origin.
+   - Per-product badges are scored in the browser, so they never hit an API or a rate limit.
+
+Smaller one: voice input via the Web Speech API doesn't work in every browser (Firefox, some iOS setups). We switched to recording with MediaRecorder and transcribing with Gemini, so the mic works in every modern browser.
+
 ## Challenges we ran into
 The hair detectors' input rules are strict and partly undocumented. We discovered each one by testing live:
 
