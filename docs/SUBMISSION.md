@@ -2,6 +2,10 @@
 
 **Tagline:** Your hair type, measured. Then only the products that suit it.
 
+**Elevator pitch (≤200 chars):** YouCam Hair AI measures your curls, frizz, density and length, and StrandLab turns that into what to buy, on any store, via one script tag. An accessible PWA with a 17-language coach.
+
+**Demo video (2:58):** _YouTube link coming soon_
+
 **Store widget (eCommerce integration):** https://strandlab-youcam.vercel.app/store-demo — one `<script>` tag gives any shop hair matching on every product.
 **Live demo:** https://strandlab-youcam.vercel.app (no login needed). Fastest look, no photos: https://strandlab-youcam.vercel.app/samples
 **Repo:** https://github.com/BrawlerXull/StrandLab
@@ -15,7 +19,10 @@ YouCam's hair diagnostics can measure what people currently guess, yet almost ev
 1. **Four guided photos:** front, left, right, and head tipped forward. The camera checks your pose live (distance, centring, head turn, head tip, lighting), talks you through it out loud, and takes the photo itself when the pose is right, so you can do the tipped-forward shot alone. Gallery uploads work too. **No camera or prefer not to share photos?** A no-photo check builds a clearly labelled, self-reported plan from 4 picture-based questions.
 2. **Four YouCam detectors measure the hair:** curl pattern (Hair Type Detection), frizz 0–3 (Hair Frizziness Detection), density 0–3 (Hair Density Detection) and length (Hair Length Detection). They run in parallel with live progress.
 3. **Two things a camera can't see:** a 4-question porosity check, and the live dew point for your city.
-4. **An explainable plan:** ingredients to look for and avoid, each naming the measurement behind it (e.g. "Avoid glycerin: 22 °C dew point means humid air makes it swell and frizz"). It also includes a wash-day routine and a day-by-day routine for the week based on the forecast.
+4. **An explainable plan:**
+   - The **Ingredients** tab is a label cheat sheet: what to look for, what to avoid and why, each naming the measurement behind it (e.g. "Avoid glycerin: 22 °C dew point means humid air makes it swell and frizz").
+   - The **Routine** tab gives four wash-day steps (cleanse, condition, leave-in, style), each with its reason.
+   - The Overview plans each day of the week from the forecast.
 5. **Shopping:**
    - a ranked starter kit
    - a "Shop real … like this" search built from your rules, localised to your country (Google Shopping region + the right Amazon store, e.g. amazon.in, amazon.co.uk)
@@ -25,7 +32,8 @@ YouCam's hair diagnostics can measure what people currently guess, yet almost ev
 7. **Coach:** available on every page and grounded in your measurements. It offers follow-up questions, an "Explain this section" button in each section, and "Ask why" on every ingredient and step. **Ask by voice, hear answers read aloud, and get replies in 17 languages** (auto-detects the language you write or speak in: Hindi, Spanish, Portuguese, Arabic, Swahili, Yoruba and more).
 8. **Accessible to everyone:** text size and high-contrast settings, and 0 axe-core WCAG 2.1 AA violations across every page in both display modes.
 9. **For stores (eCommerce integration):** one `<script>` tag adds a "Find my hair match" button to any store's product page. The shopper matches once, inside an isolated dialog, and every product on the page then shows a match badge. The store's code receives the result (match %, reasons, `lookFor`/`avoid`) as a JavaScript event. Photos never reach the store. Live demo store: https://strandlab-youcam.vercel.app/store-demo · docs: /for-stores.
-10. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
+10. **Installable PWA:** install it from the browser, with no app store. It opens full screen from the home screen in the store aisle, uses the phone camera for the guided scan and label photos, and has an offline fallback.
+11. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
 
 ## How we built it
 - **App:** Next.js 14 + TypeScript + Tailwind, deployed on Vercel, installable as a PWA with offline support.
