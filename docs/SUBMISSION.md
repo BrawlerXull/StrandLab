@@ -80,6 +80,23 @@ YouCam's hair diagnostics can measure what people currently guess, yet almost ev
 - **Gemini:** INCI label parsing and the grounded coach, with key rotation and failover.
 - **Open-Meteo:** live dew point and a 4-day outlook.
 
+## Was there a moment where the API surprised you?
+Both kinds, and close together.
+
+**The frustrating part:** our first real selfies were rejected. We got `error_face_position_too_small`, then `error_mismatch_image_size`, then out-of-boundary errors, for photos that looked fine to us. The hair detectors turned out to have strict input rules that we had to discover by testing live:
+- the face must fill roughly 50–80% of the image width
+- the three angle photos must have exactly the same pixel size
+- density needs a head-tipped-forward photo that still shows the face, and it is very sensitive to framing
+
+**The good surprise came straight after:** rejected tasks aren't billed. That changed our whole approach. Instead of asking users to retake photos, we built an auto-framing ladder:
+- MediaPipe finds the face in the browser.
+- The server crops, pads and resizes with sharp, then retries tighter or looser framings until YouCam accepts one.
+- Retries cost nothing, so "photo rejected" became a measurement for almost any real-world selfie.
+
+We also show every attempt in the app ("How we measured this"), so judges and users can see exactly what was sent and which framing worked.
+
+The other pleasant surprise was how well the APIs chain together. The Hair Type result is precise enough that we use it to decide which try-on to run: Hair Volume or Wavy Hair, and with which template. One API's output drives the next call.
+
 ## Challenges we ran into
 The hair detectors' input rules are strict and partly undocumented. We discovered each one by testing live:
 
