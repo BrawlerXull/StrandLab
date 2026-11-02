@@ -97,6 +97,21 @@ We also show every attempt in the app ("How we measured this"), so judges and us
 
 The other pleasant surprise was how well the APIs chain together. The Hair Type result is precise enough that we use it to decide which try-on to run: Hair Volume or Wavy Hair, and with which template. One API's output drives the next call.
 
+## Industries or use cases nobody is talking about yet
+Most conversation about beauty AI is about try-on: lipstick shades, hair colours, hairstyles. Building StrandLab convinced us the bigger opportunity is **diagnostics as a measurement tool**, especially once it's combined with data the camera can't see.
+
+1. **Health and recovery tracking.** Hair density measured over time is a real signal for people going through chemotherapy, postpartum shedding, thyroid treatment or alopecia care. Today they judge regrowth by eye in the mirror. A consistent, photo-based density trend (our re-scan loop already does this for frizz and density) would give patients and clinics something objective to talk about. It wouldn't be a diagnosis, just honest tracking.
+2. **Climate-aware beauty.** We were surprised how much dew point changes which ingredients work. Combine diagnostics with weather and location and brands can do things nobody does yet:
+   - switch a subscriber's regimen with the seasons
+   - forecast regional demand ("anti-humidity stylers before the monsoon in Mumbai")
+   - send humid-day routine alerts
+3. **Formulation R&D from real-world data.** Aggregated, anonymised and with consent, diagnostics show what people's hair actually looks like by region: curl families, density, frizz under real humidity. Today formulators mostly work from small panels. This is a market-research product hiding inside a consumer app.
+4. **Salons and stylists.** A client could arrive with a measured profile and routine already shared (our "Share my plan" sends it in one tap). Consultations would be faster, and the stylist could recommend retail products that actually suit the client, instead of whatever is on the shelf.
+5. **Physical retail and pharmacies.** A PWA plus a label photo turns any phone into a shelf assistant in the aisle. The same approach would help drugstores, where most hair care is sold, and help visually impaired shoppers, who can photograph a bottle and hear the verdict read aloud.
+6. **Hospitality and travel.** Hotels, gyms and airlines stock one generic shampoo. A guest's saved profile could pick amenities that suit their hair, which is a small, delightful personalisation that no one offers.
+
+The common thread: YouCam's APIs are usually treated as a fun mirror. They're also a **sensor**, and sensors become valuable when you measure over time, add context and connect the result to a decision.
+
 ## Challenges we ran into
 The hair detectors' input rules are strict and partly undocumented. We discovered each one by testing live:
 
