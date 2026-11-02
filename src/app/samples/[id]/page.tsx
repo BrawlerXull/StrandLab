@@ -31,6 +31,7 @@ export default function SamplePage({ params }: { params: { id: string } }) {
             <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
               <Link href="/samples" className="text-muted hover:text-ink">← All samples</Link>
               <Link href="/scan" className="text-teal font-medium underline">Scan my own hair</Link>
+              <Link href="/store-demo" className="text-teal font-medium underline">See {s.name}&apos;s matches inside a store →</Link>
             </p>
           </div>
           <nav aria-label="Switch sample" className="lg:w-[38rem]"><SampleStrip current={s.id} label="" /></nav>

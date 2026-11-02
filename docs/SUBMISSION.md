@@ -2,6 +2,7 @@
 
 **Tagline:** Your hair type, measured. Then only the products that suit it.
 
+**Store widget (eCommerce integration):** https://strandlab-youcam.vercel.app/store-demo — one `<script>` tag gives any shop hair matching on every product.
 **Live demo:** https://strandlab-youcam.vercel.app (no login needed). Fastest look, no photos: https://strandlab-youcam.vercel.app/samples
 **Repo:** https://github.com/BrawlerXull/StrandLab
 

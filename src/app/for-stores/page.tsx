@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Script from "next/script";
 
 const SNIPPET = (origin: string) => `<!-- 1. Once per page -->
 <script src="${origin}/widget.js" async></script>
@@ -79,6 +80,31 @@ const ATTRS: [string, string][] = [
   ["data-auto-score=\"false\" (script tag)", "Turn off automatic match badges on every product button."],
 ];
 
+/** The real widget, running on this page, so you can try it without leaving. */
+function LiveTry() {
+  const [match, setMatch] = useState<string | null>(null);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const p = (e as CustomEvent).detail?.product;
+      if (p?.id === "docs-cream") setMatch(`${p.match}% · ${p.verdictLabel}`);
+    };
+    document.addEventListener("strandlab:result", on);
+    return () => document.removeEventListener("strandlab:result", on);
+  }, []);
+  return (
+    <section className="mt-10 rounded-3xl border-2 border-dashed border-teal/40 bg-white p-5 sm:p-6 grid sm:grid-cols-[1fr_auto] gap-4 items-center">
+      <Script src="/widget.js" strategy="afterInteractive" />
+      <div>
+        <p className="eyebrow">Live · try it on this page</p>
+        <p className="mt-1 font-serif text-2xl">Shea Whip Curl Cream <span className="text-base font-sans text-muted">· $22 · example product</span></p>
+        <p className="mt-1 text-sm text-muted">This button is the real widget, loaded from <code>/widget.js</code>, exactly as a store embeds it.</p>
+        {match && <p className="mt-2 text-sm font-medium text-teal-dark" role="status">Your store would receive: {match}</p>}
+      </div>
+      <div data-strandlab="" data-product="Shea Whip Curl Cream" data-product-id="docs-cream" data-ingredients="Aqua, Butyrospermum Parkii Butter, Cetearyl Alcohol, Cocos Nucifera Oil, Glycerin, Behentrimonium Methosulfate, Ricinus Communis Seed Oil, Panthenol" />
+    </section>
+  );
+}
+
 export default function ForStores() {
   const [origin, setOrigin] = useState("https://strandlab-youcam.vercel.app");
   useEffect(() => setOrigin(window.location.origin), []);
@@ -95,6 +121,8 @@ export default function ForStores() {
         <Link href="/store-demo" className="btn-primary !px-6 !py-3 !text-base">Open the live demo store →</Link>
         <a href="#install" className="btn-ghost !px-6 !py-3 !text-base">Install in 2 minutes</a>
       </div>
+
+      <LiveTry />
 
       <section className="mt-12 grid gap-4 md:grid-cols-3" aria-label="How it works for shoppers">
         {[

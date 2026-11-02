@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useApp } from "@/components/AppState";
 import { ChatIcon } from "@/components/Shell";
 import { SampleGrid, SampleStrip } from "@/components/SamplePicker";
+import StoreShowcase from "@/components/StoreShowcase";
 
 export default function Landing() {
   const { openCoach, measured } = useApp();
@@ -12,7 +13,12 @@ export default function Landing() {
       {/* HERO */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 pt-12 sm:pt-16 pb-12 grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
         <div>
-          <p className="chip text-teal-dark border-teal/30 bg-teal-soft">AI hair-care advisor · free · no account</p>
+          <Link href="#for-stores" className="group inline-flex items-center gap-2 rounded-full border border-amber/40 bg-amber-soft py-1 pl-1 pr-3 text-sm hover:border-amber">
+            <span className="rounded-full bg-amber px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white">New</span>
+            <span>Stores can embed StrandLab with one line of code</span>
+            <span aria-hidden className="text-amber transition group-hover:translate-x-0.5">→</span>
+          </Link>
+          <p className="mt-3 chip text-teal-dark border-teal/30 bg-teal-soft">AI hair-care advisor · free · no account</p>
           <h1 className="mt-5 font-serif text-4xl sm:text-6xl leading-[1.05] tracking-tight">
             Stop guessing your hair type. <em className="text-teal">Measure it.</em>
           </h1>
@@ -44,6 +50,9 @@ export default function Landing() {
         </div>
         <HeroVisual />
       </section>
+
+      {/* FOR STORES: live widget */}
+      <StoreShowcase />
 
       {/* WHO / PROBLEM */}
       <section className="border-y border-line bg-white/60">

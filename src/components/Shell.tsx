@@ -45,7 +45,10 @@ export function Header() {
 
         <nav aria-label="Main" className="hidden xl:flex flex-1 items-center justify-center gap-1">
           {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="whitespace-nowrap rounded-full px-3.5 py-2 text-sm text-muted hover:text-ink hover:bg-shell">{n.label}</Link>
+            <Link key={n.href} href={n.href} className={`whitespace-nowrap rounded-full px-3 py-2 text-sm text-muted hover:text-ink hover:bg-shell items-center gap-1.5 ${n.href === "/#faq" || n.href === "/#how" ? "hidden 2xl:inline-flex" : "inline-flex"}`}>
+              {n.label}
+              {n.href === "/for-stores" && <span className="rounded-full bg-amber px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-white">New</span>}
+            </Link>
           ))}
           {measured && (
             <Link
@@ -72,8 +75,8 @@ export function Header() {
               <span className="sm:hidden">Samples</span><span className="hidden sm:inline">Try a sample</span>
             </Link>
           )}
-          <button onClick={() => openCoach()} className="btn-ghost h-10 !px-3 sm:!px-4 whitespace-nowrap" aria-label="Ask the hair coach">
-            <ChatIcon /> <span className="hidden sm:inline">Ask the coach</span>
+          <button onClick={() => openCoach()} className="btn-ghost h-10 !px-3 lg:!px-4 whitespace-nowrap" aria-label="Ask the hair coach">
+            <ChatIcon /> <span className="hidden lg:inline">Ask the coach</span>
           </button>
           {!inFlow && (
             <Link href="/scan" className="btn-primary h-10 hidden sm:inline-flex whitespace-nowrap">Start free scan</Link>
@@ -86,7 +89,10 @@ export function Header() {
       {menu && (
         <nav id="mobile-nav" aria-label="Mobile" className="xl:hidden border-t border-line bg-paper px-4 py-3 flex flex-col">
           {[...NAV, ...(measured ? [{ href: "/results", label: "My results" }] : []), { href: "/scan", label: "Start free scan" }].map((n) => (
-            <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="rounded-lg px-3 py-3 text-base hover:bg-shell">{n.label}</Link>
+            <Link key={n.href} href={n.href} onClick={() => setMenu(false)} className="rounded-lg px-3 py-3 text-base hover:bg-shell flex items-center gap-2">
+              {n.label}
+              {n.href === "/for-stores" && <span className="rounded-full bg-amber px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-white">New</span>}
+            </Link>
           ))}
           {canInstall && <button onClick={() => { setMenu(false); install(); }} className="rounded-lg px-3 py-3 text-base text-left text-teal hover:bg-shell">Install StrandLab app</button>}
           {iosHint && <p className="px-3 py-2 text-sm text-muted">Install on iPhone: tap <b>Share</b> → <b>Add to Home Screen</b>.</p>}
@@ -112,7 +118,7 @@ export function Footer() {
   return (
     <footer className="mt-16 border-t border-line pb-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 flex flex-col sm:flex-row gap-4 justify-between text-sm text-muted">
-        <div className="flex items-center gap-2"><Logo className="h-6 w-6" /> <span>StrandLab · built with YouCam Hair AI, Gemini and Open-Meteo</span></div>
+        <div className="flex flex-wrap items-center gap-2"><Logo className="h-6 w-6" /> <span>StrandLab · built with YouCam Hair AI, Gemini and Open-Meteo</span> <span aria-hidden>·</span> <Link href="/for-stores" className="text-teal underline">Add StrandLab to your store</Link> <span aria-hidden>·</span> <Link href="/store-demo" className="text-teal underline">Demo store</Link></div>
         <p>Cosmetic guidance only — for hair loss or scalp problems, see a dermatologist.</p>
       </div>
     </footer>

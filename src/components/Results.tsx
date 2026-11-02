@@ -109,7 +109,7 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
         <div
           role="tablist"
           aria-label="Result sections"
-          className="flex md:grid md:grid-cols-5 gap-2 overflow-x-auto snap-x px-4 sm:px-0 md:rounded-2xl md:border md:border-line md:bg-white md:p-1.5 md:shadow-card [scrollbar-width:none]"
+          className="relative flex md:grid md:grid-cols-5 gap-2 overflow-x-auto snap-x px-4 sm:px-0 md:rounded-2xl md:border md:border-line md:bg-white md:p-1.5 md:shadow-card [scrollbar-width:none]"
         >
           {TABS.map((t, i) => {
             const active = tab === t.id;
@@ -500,6 +500,10 @@ function Products({ rec, shop, ask, profile, title }: { rec: Rec; shop: Record<s
         {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} query={shopQuery(c, rec, fam)} cc={cc} />)}
         <LabelCheck rec={rec} />
       </div>
+      <Link href="/store-demo" className="mt-6 flex items-center gap-4 rounded-2xl border border-amber/40 bg-amber-soft p-4 hover:border-amber">
+        <span className="rounded-full bg-amber px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white shrink-0">For stores</span>
+        <span className="text-sm"><b>Shopping in an online store?</b> Shops can embed this same matching with one line of code, so every product shows how well it suits your hair. <span className="text-teal underline">See it in the demo store →</span></span>
+      </Link>
       <p className="mt-4 text-xs text-muted">The ranked cards use a demo catalogue of fictional products to show how matching works; “Shop real … like this” searches real retailers with the same rules{cc ? ` in ${countryName(cc)} (from your location)` : ""}. Match % is calculated from the ingredient rules.</p>
     </section>
   );

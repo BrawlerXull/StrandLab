@@ -1,6 +1,7 @@
 # StrandLab: your hair type, measured
 
 **Live demo:** https://strandlab-youcam.vercel.app (no login; installable as an app on phones)
+**Store widget demo:** https://strandlab-youcam.vercel.app/store-demo — a fictional shop where one `<script>` tag adds hair matching to every product
 
 **For curly, wavy, coily and frizz-prone shoppers who keep buying products that don't suit their hair.**
 
@@ -10,6 +11,7 @@ Hair-care labels assume you know whether you're "3A", "fine" or "high porosity".
 2. **Adds** the two things a camera can't see: porosity (a 4-question quiz) and the dew point at your location (live forecast).
 3. **Explains** which ingredient families to look for or avoid. Each recommendation names the measurement behind it.
 4. **Shops** for you with ranked products, a checker for any label you paste, and a realistic try-on next to the "ad promise".
+5. **Plugs into any online store:** one script tag adds a "Find my hair match" button to a shop's product pages. Every product then shows a match badge for the shopper, and the store receives the result as a JavaScript event ([details](#for-stores-one-script-tag-puts-strandlab-on-any-product-page)).
 
 > Try it in 10 seconds without photos: https://strandlab-youcam.vercel.app/samples (one click from the header **Try a sample** button or the hero). AI-generated people, real YouCam measurements.
 
