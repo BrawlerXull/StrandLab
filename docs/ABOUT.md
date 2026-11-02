@@ -12,14 +12,14 @@ YouCam's hair diagnostics can measure what people currently guess, yet almost ev
 2. **Four YouCam detectors measure the hair:** curl pattern (Hair Type Detection), frizz 0–3 (Hair Frizziness Detection), density 0–3 (Hair Density Detection) and length (Hair Length Detection). They run in parallel with live progress.
 3. **Two things a camera can't see:** a 4-question porosity check, and the live dew point for your city.
 4. **An explainable plan:**
-- The **Ingredients** tab is a label cheat sheet: what to look for, what to avoid and why, each naming the measurement behind it (e.g. "Avoid glycerin: 22 °C dew point means humid air makes it swell and frizz").
-- The **Routine** tab gives four wash-day steps (cleanse, condition, leave-in, style), each with its reason.
-- The Overview plans each day of the week from the forecast.
+   - The **Ingredients** tab is a label cheat sheet: what to look for, what to avoid and why, each naming the measurement behind it (e.g. "Avoid glycerin: 22 °C dew point means humid air makes it swell and frizz").
+   - The **Routine** tab gives four wash-day steps (cleanse, condition, leave-in, style), each with its reason.
+   - The Overview plans each day of the week from the forecast.
 5. **Shopping:**
-- a ranked starter kit
-- a "Shop real … like this" search built from your rules, localised to your country (Google Shopping region + the right Amazon store, e.g. amazon.in, amazon.co.uk)
-- a label checker: **photograph the back of a bottle in the shop** (Gemini reads the ingredient list) or paste it; Gemini maps it to ingredient families, and deterministic rules score it
-- share your plan (phone share sheet, WhatsApp, email), copy it, or print / save it as a PDF
+   - a ranked starter kit
+   - a "Shop real … like this" search built from your rules, localised to your country (Google Shopping region + the right Amazon store, e.g. amazon.in, amazon.co.uk)
+   - a label checker: **photograph the back of a bottle in the shop** (Gemini reads the ingredient list) or paste it; Gemini maps it to ingredient families, and deterministic rules score it
+   - share your plan (phone share sheet, WhatsApp, email), copy it, or print / save it as a PDF
 6. **Expectation check:** YouCam Hair Volume / Wavy Hair try-on shows the realistic result of the routine next to the "ad promise", on your own photo.
 7. **Coach:** available on every page and grounded in your measurements. It offers follow-up questions, an "Explain this section" button in each section, and "Ask why" on every ingredient and step. **Ask by voice, hear answers read aloud, and get replies in 17 languages** (auto-detects the language you write or speak in: Hindi, Spanish, Portuguese, Arabic, Swahili, Yoruba and more).
 8. **Accessible to everyone:** text size and high-contrast settings, and 0 axe-core WCAG 2.1 AA violations across every page in both display modes.
