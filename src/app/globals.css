@@ -21,6 +21,8 @@
   html.hc :focus-visible { outline-width: 3px; outline-color: #000; }
   /* scroll-padding keeps focused / scrolled-to items clear of the sticky header and bottom bar (WCAG 2.4.11) */
   html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; scroll-padding-top: 9rem; scroll-padding-bottom: 7rem; }
+  /* Larger text on narrow phones: the header would overflow and the page would zoom out, so keep the logo mark only */
+  @media (max-width: 479px) { html[style*="font-size"] .brand-word { display: none; } }
   /* PWA / notch safe areas */
   body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
   /* Accessibility: visible keyboard focus everywhere */

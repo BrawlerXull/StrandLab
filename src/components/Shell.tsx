@@ -39,7 +39,7 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 sm:gap-3 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-lg" aria-label="StrandLab home">
           <Logo />
-          <span className="font-serif text-xl tracking-tight whitespace-nowrap">StrandLab</span>
+          <span className="brand-word font-serif text-xl tracking-tight whitespace-nowrap">StrandLab</span>
           <span className="hidden 2xl:inline whitespace-nowrap text-xs text-muted border-l border-line pl-2 ml-1">AI hair-care advisor</span>
         </Link>
 
