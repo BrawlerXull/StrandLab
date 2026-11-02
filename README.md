@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| 🎬 **Demo video (2:58)** | _YouTube link coming soon_ |
+| 🎬 **Demo video (2:58)** | https://youtu.be/a3W9PW61wXw |
 | 🌐 **Live app** | https://strandlab-youcam.vercel.app (no login, free, installable as an app on phones) |
 | 🛍️ **Store widget demo** | https://strandlab-youcam.vercel.app/store-demo (a fictional shop where one `<script>` tag adds hair matching to every product) |
 | ⚡ **No-photo try** | https://strandlab-youcam.vercel.app/samples (real YouCam results for three sample people) |

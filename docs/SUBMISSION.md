@@ -4,7 +4,7 @@
 
 **Elevator pitch (≤200 chars):** YouCam Hair AI measures your curls, frizz, density and length, and StrandLab turns that into what to buy, on any store, via one script tag. An accessible PWA with a 17-language coach.
 
-**Demo video (2:58):** _YouTube link coming soon_
+**Demo video (2:58):** https://youtu.be/a3W9PW61wXw
 
 **Store widget (eCommerce integration):** https://strandlab-youcam.vercel.app/store-demo — one `<script>` tag gives any shop hair matching on every product.
 **Live demo:** https://strandlab-youcam.vercel.app (no login needed). Fastest look, no photos: https://strandlab-youcam.vercel.app/samples
