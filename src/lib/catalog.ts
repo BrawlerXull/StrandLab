@@ -106,4 +106,30 @@ export function shopQuery(category: Category, rec: Rec, family: string): string 
   return [...Array.from(words).slice(0, 3), fam, CAT_WORDS[category]].join(" ");
 }
 
-export const shopUrl = (q: string) => `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}`;
+/** Amazon storefront per ISO country code (from the user's weather location). */
+const AMAZON: Record<string, string> = {
+  US: "amazon.com", IN: "amazon.in", GB: "amazon.co.uk", CA: "amazon.ca", AU: "amazon.com.au", DE: "amazon.de", FR: "amazon.fr",
+  IT: "amazon.it", ES: "amazon.es", NL: "amazon.nl", SE: "amazon.se", PL: "amazon.pl", BE: "amazon.com.be", JP: "amazon.co.jp",
+  BR: "amazon.com.br", MX: "amazon.com.mx", AE: "amazon.ae", SA: "amazon.sa", SG: "amazon.sg", TR: "amazon.com.tr", EG: "amazon.eg",
+  IE: "amazon.co.uk", AT: "amazon.de", CH: "amazon.de", NZ: "amazon.com.au",
+};
+
+/** "Mumbai, IN" → "IN". */
+export const countryOf = (place?: string | null): string | undefined => place?.match(/,\s*([A-Z]{2})\b/)?.[1];
+
+export function countryName(cc?: string): string | undefined {
+  if (!cc) return undefined;
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(cc) || cc;
+  } catch {
+    return cc;
+  }
+}
+
+export const shopUrl = (q: string, cc?: string) =>
+  `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(q)}${cc ? `&gl=${cc.toLowerCase()}` : ""}`;
+
+export function amazonUrl(q: string, cc?: string): { url: string; host: string } {
+  const host = (cc && AMAZON[cc]) || "amazon.com";
+  return { url: `https://www.${host}/s?k=${encodeURIComponent(q)}`, host: host[0].toUpperCase() + host.slice(1) };
+}

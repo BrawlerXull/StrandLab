@@ -45,6 +45,20 @@ Engineering details:
 - **Installable app (PWA):** manifest, maskable icons, service worker, offline page and install prompt.
 - **Accessibility:** skip link, ARIA tabs and dialogs, visible focus, scroll padding so focus is never hidden behind sticky bars, reduced-motion support, and layouts that work from phone to desktop.
 
+### Reach and accessibility: built for a wide audience
+
+| Barrier | What StrandLab does |
+|---|---|
+| Doing the tipped-forward photo alone | **Guided camera:** live MediaPipe face keypoints check distance, centring, head turn, head tip and lighting. It **speaks** corrections and **auto-captures** when the pose holds steady |
+| Not wanting to share selfies (privacy, no camera, head covering) | **No-photo check** (`/quick`): 4 picture-based questions build a self-reported plan, clearly labelled as lower confidence |
+| Typing an INCI list in a shop | **Photograph the label:** Gemini reads the ingredient list from the bottle photo, and the rules score it |
+| Language | The coach replies in **17 languages**, or auto-matches the language you type or speak |
+| Low vision, dyslexia, low literacy, wet hands | **Voice in** (mic) and **voice out** ("Listen") in the coach. **Text size** (3 steps) and **high-contrast** mode, remembered per device |
+| Shopping outside the US | Real-product links use your country's Google Shopping region and Amazon store |
+| Getting advice to a stylist or friend | **Share my plan** via the phone share sheet, WhatsApp or email |
+
+**Audited:** axe-core reports 0 WCAG 2.1 A/AA violations on every page in default and high-contrast modes, including the results tabs, the coach, the scan flow and the no-photo route.
+
 ### 3. Potential impact: a real audience and a measurable outcome
 
 - **The problem:** curl type, porosity and climate change which ingredients work, and shoppers can't see any of them. The result is wasted purchases and abandoned routines.

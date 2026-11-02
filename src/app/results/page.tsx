@@ -28,7 +28,8 @@ export default function ResultsPage() {
               <p className="mt-2 text-muted">Start a scan, or explore a sample result first.</p>
               <div className="mt-6 flex justify-center gap-3">
                 <Link href="/scan" className="btn-primary">Start free scan</Link>
-                <Link href="/samples/maya" className="btn-ghost">See a sample</Link>
+                <Link href="/quick" className="btn-ghost">No-photo check</Link>
+                <Link href="/samples" className="btn-ghost">See a sample</Link>
               </div>
             </>
           )}
@@ -36,19 +37,21 @@ export default function ResultsPage() {
       </>
     );
 
+  const self = measured.source === "self";
   const front = photos.front?.url || frontUrl || "";
   const blob = photos.front?.blob || (frontUrl ? dataUrlToBlob(frontUrl) : null);
   return (
     <>
-      <Stepper current={2} canVisit={(i) => i < 2} />
+      {!self && <Stepper current={2} canVisit={(i) => i < 2} />}
       <Results
-        title="Your hair profile"
+        title={self ? "Your hair profile · self-reported" : "Your hair profile"}
         profile={profile}
         frontUrl={front}
         frontBlob={blob}
         history={history}
         retakeHref="/scan"
-        editDetailsHref="/scan/details"
+        retakeLabel={self ? "Take the photo scan" : "Retake photos"}
+        editDetailsHref={self ? "/quick" : "/scan/details"}
         onRestart={reset}
       />
     </>

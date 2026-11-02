@@ -3,12 +3,28 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --c-paper: 246 243 238; --c-shell: 236 230 220; --c-line: 220 211 197; --c-ink: 31 42 42; --c-muted: 92 99 95;
+    --c-teal: 47 107 102; --c-teal-dark: 33 78 74; --c-teal-soft: 220 234 231;
+    --c-amber: 138 86 20; --c-amber-soft: 246 231 207; --c-clay: 156 66 44; --c-clay-soft: 244 220 211;
+  }
+  /* High-contrast mode (Display settings): pure black text, dark borders, deeper accents — all pairs ≥ 7:1 */
+  html.hc {
+    --c-paper: 255 255 255; --c-shell: 236 236 236; --c-line: 70 70 70; --c-ink: 0 0 0; --c-muted: 30 30 30;
+    --c-teal: 10 70 66; --c-teal-dark: 4 46 43; --c-teal-soft: 222 240 236;
+    --c-amber: 110 64 0; --c-amber-soft: 255 236 200; --c-clay: 135 32 12; --c-clay-soft: 255 225 215;
+  }
+  html.hc [class*="text-ink/"] { color: rgb(0 0 0) !important; }
+  html.hc [class*="text-white/"] { color: rgb(255 255 255) !important; }
+  html.hc .card, html.hc [class*="bg-white/"] { background-color: rgb(255 255 255) !important; }
+  html.hc main a:not([class*="btn"]):not(.card):not(.chip) { text-decoration: underline; text-underline-offset: 3px; }
+  html.hc :focus-visible { outline-width: 3px; outline-color: #000; }
   /* scroll-padding keeps focused / scrolled-to items clear of the sticky header and bottom bar (WCAG 2.4.11) */
   html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; scroll-padding-top: 9rem; scroll-padding-bottom: 7rem; }
   /* PWA / notch safe areas */
   body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
   /* Accessibility: visible keyboard focus everywhere */
-  :focus-visible { outline: 2px solid #2F6B66; outline-offset: 2px; border-radius: 6px; }
+  :focus-visible { outline: 2px solid rgb(var(--c-teal)); outline-offset: 2px; border-radius: 6px; }
 }
 
 /* Component classes live in the components layer so utilities (hidden, sm:inline-flex, !px-3 …) can override them. */
@@ -22,7 +38,7 @@
   .eyebrow { @apply text-[11px] uppercase tracking-[0.18em] text-muted font-medium; }
   .h2 { @apply font-serif text-2xl sm:text-3xl tracking-tight; }
   .receipt { @apply font-mono text-[11px] text-muted; }
-  .skeleton { background: linear-gradient(90deg, #ECE6DC 0, #F6F3EE 50%, #ECE6DC 100%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; }
+  .skeleton { background: linear-gradient(90deg, rgb(var(--c-shell)) 0, rgb(var(--c-paper)) 50%, rgb(var(--c-shell)) 100%); background-size: 800px 100%; animation: shimmer 1.4s infinite linear; }
   .strand-dot { animation: strand 1.2s ease-in-out infinite; }
   .safe-top { padding-top: env(safe-area-inset-top); }
   .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }

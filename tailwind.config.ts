@@ -4,15 +4,16 @@ const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
+      // Colours are CSS variables (see globals.css) so the high-contrast mode can swap the palette.
       colors: {
-        paper: "#F6F3EE",
-        shell: "#ECE6DC",
-        line: "#DCD3C5",
-        ink: "#1F2A2A",
-        muted: "#6B726E",
-        teal: { DEFAULT: "#2F6B66", dark: "#214E4A", soft: "#DCEAE7" },
-        amber: { DEFAULT: "#C8862E", soft: "#F6E7CF" },
-        clay: { DEFAULT: "#B5543C", soft: "#F4DCD3" },
+        paper: "rgb(var(--c-paper) / <alpha-value>)",
+        shell: "rgb(var(--c-shell) / <alpha-value>)",
+        line: "rgb(var(--c-line) / <alpha-value>)",
+        ink: "rgb(var(--c-ink) / <alpha-value>)",
+        muted: "rgb(var(--c-muted) / <alpha-value>)",
+        teal: { DEFAULT: "rgb(var(--c-teal) / <alpha-value>)", dark: "rgb(var(--c-teal-dark) / <alpha-value>)", soft: "rgb(var(--c-teal-soft) / <alpha-value>)" },
+        amber: { DEFAULT: "rgb(var(--c-amber) / <alpha-value>)", soft: "rgb(var(--c-amber-soft) / <alpha-value>)" },
+        clay: { DEFAULT: "rgb(var(--c-clay) / <alpha-value>)", soft: "rgb(var(--c-clay-soft) / <alpha-value>)" },
       },
       fontFamily: {
         serif: ["var(--font-serif)", "Georgia", "serif"],

@@ -24,6 +24,9 @@ export default function Landing() {
             <Link href="/scan" className="btn-primary !px-6 !py-3 !text-base">Start free scan →</Link>
             <Link href="/samples" className="btn-ghost !px-6 !py-3 !text-base">View sample results</Link>
           </div>
+          <p className="mt-3 text-sm text-muted">
+            Rather not share photos? <Link href="/quick" className="text-teal underline font-medium">Answer 4 questions instead</Link> — no camera needed.
+          </p>
           <div className="mt-6 rounded-2xl border border-teal/25 bg-white/70 p-3 sm:p-4">
             <SampleStrip label="No photos? Open a real result instantly:" />
           </div>
@@ -78,9 +81,9 @@ export default function Landing() {
             <Feature icon="◎" title="Hair profile" text="Curl pattern, frizz, density and length — measured by AI, shown on simple scales." />
             <Feature icon="✓" title="Ingredients, with reasons" text="“Avoid glycerin today: dew point is 22°C.” Every tip names the measurement behind it." />
             <Feature icon="≡" title="Wash-day routine" text="Step-by-step routine sized to your hair: light, medium or rich products." />
-            <Feature icon="◇" title="Matched products" text="A ranked starter kit, plus a checker for any bottle you already own — just paste the label." />
+            <Feature icon="◇" title="Matched products" text="A ranked starter kit, local shop links, and a label checker — just photograph the back of any bottle." />
             <Feature icon="◐" title="Realistic preview" text="See the realistic result on your own photo next to what the ads promise." />
-            <Feature icon="?" title="Hair coach" text="Ask follow-up questions in plain language, any time — it knows your results." action={<button onClick={() => openCoach()} className="mt-3 text-sm text-teal font-medium hover:underline inline-flex items-center gap-1.5"><ChatIcon /> Try the coach now</button>} />
+            <Feature icon="?" title="Hair coach" text="Ask by typing or voice, in your own language (17 supported) — it knows your results and can read answers aloud." action={<button onClick={() => openCoach()} className="mt-3 text-sm text-teal font-medium hover:underline inline-flex items-center gap-1.5"><ChatIcon /> Try the coach now</button>} />
           </div>
         </div>
       </section>

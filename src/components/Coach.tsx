@@ -7,6 +7,10 @@ import { useApp } from "./AppState";
 import Markdown from "./Markdown";
 import { ChatIcon, Logo } from "./Shell";
 import { Dots } from "./Quiz";
+import { LANGS, langById } from "@/lib/langs";
+import { MicIcon, SpeakerIcon, useDictation, useSpeak } from "./Speech";
+
+const LANG_KEY = "sl-coach-lang";
 
 type Msg = { role: "user" | "coach"; text: string; label?: string; error?: boolean; followups?: string[] };
 
@@ -30,7 +34,27 @@ export default function CoachWidget() {
   const scroller = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const lastCtx = useRef<string | null>(null);
-  const inFlow = usePathname().startsWith("/scan");
+  const path = usePathname();
+  const inFlow = path.startsWith("/scan") || path.startsWith("/quick");
+  const [lang, setLang] = useState("auto");
+  useEffect(() => {
+    try {
+      setLang(localStorage.getItem(LANG_KEY) || "auto");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+  const chooseLang = (v: string) => {
+    setLang(v);
+    try {
+      localStorage.setItem(LANG_KEY, v);
+    } catch {
+      /* ignore */
+    }
+  };
+  const bcp = langById(lang).bcp;
+  const tts = useSpeak();
+  const mic = useDictation(bcp, setQ, (t) => ask(t));
 
   // Reset the conversation when the profile it is grounded in changes.
   useEffect(() => {
@@ -39,6 +63,11 @@ export default function CoachWidget() {
     lastCtx.current = key;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coachContext]);
+
+  useEffect(() => {
+    if (!coachOpen) tts.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coachOpen]);
 
   useEffect(() => {
     if (!coachOpen) return;
@@ -71,7 +100,7 @@ export default function CoachWidget() {
       const r = await fetch("/api/coach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context: coachContext?.text || "", question: text, history }),
+        body: JSON.stringify({ context: coachContext?.text || "", question: text, history, lang }),
       });
       const j = await r.json();
       setMsgs((m) => [...m, r.ok ? { role: "coach", text: j.answer, followups: j.followups || [] } : { role: "coach", text: j.error || "Something went wrong.", error: true }]);
@@ -123,6 +152,14 @@ export default function CoachWidget() {
           </div>
         </div>
 
+        <div className="flex items-center gap-2 border-b border-line bg-white/70 px-5 py-2">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 text-muted shrink-0" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" /></svg>
+          <label htmlFor="coach-lang" className="text-xs text-muted shrink-0">Reply in</label>
+          <select id="coach-lang" value={lang} onChange={(e) => chooseLang(e.target.value)} className="min-w-0 flex-1 rounded-lg border border-line bg-white px-2 py-1.5 text-sm">
+            {LANGS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+          </select>
+        </div>
+
         <div ref={scroller} className="flex-1 overflow-y-auto px-5 py-5 space-y-4" aria-live="polite" aria-busy={busy}>
           {msgs.length === 0 && (
             <div>
@@ -133,6 +170,7 @@ export default function CoachWidget() {
                     ? "I can see your measured hair profile, so I can explain your results, ingredients and routine in plain language."
                     : "Ask me anything about curl types, porosity, frizz or ingredients. Run a scan and my answers become personal to your hair."}
                 </p>
+                <p className="mt-2 text-muted">Type or {mic.supported ? "tap the mic and speak" : "write"} in any language — I&apos;ll reply in the same one.{tts.supported ? " Tap “Listen” on any answer to hear it read aloud." : ""}</p>
               </div>
               <p className="eyebrow mt-5 mb-2">Try asking</p>
               <div className="flex flex-col gap-2">
@@ -144,16 +182,25 @@ export default function CoachWidget() {
           )}
           {msgs.map((m, i) =>
             m.role === "user" ? (
-              <div key={i} className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-sm text-paper">
+              <div key={i} dir="auto" className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 text-sm text-paper">
                 <span className="sr-only">You said: </span>
                 {m.label ? <span className="inline-flex items-center gap-1.5"><Sparkle /> {m.label}</span> : m.text}
               </div>
             ) : (
               <div key={i} className="flex gap-2.5">
                 <Logo className="h-7 w-7 shrink-0 mt-1" />
-                <div className={`max-w-[88%] rounded-2xl rounded-tl-md border px-4 py-3 text-[15px] ${m.error ? "border-clay/40 bg-clay-soft text-clay" : "border-line bg-white text-ink/90"}`}>
+                <div dir="auto" className={`max-w-[88%] rounded-2xl rounded-tl-md border px-4 py-3 text-[15px] ${m.error ? "border-clay/40 bg-clay-soft text-clay" : "border-line bg-white text-ink/90"}`}>
                   <span className="sr-only">Coach replied: </span>
                   <Markdown text={m.text} />
+                  {tts.supported && !m.error && (
+                    <button
+                      onClick={() => (tts.speakingId === `m${i}` ? tts.stop() : tts.speak(`m${i}`, m.text, bcp || undefined))}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs font-medium text-muted hover:text-ink hover:bg-shell"
+                      aria-pressed={tts.speakingId === `m${i}`}
+                    >
+                      <SpeakerIcon on={tts.speakingId === `m${i}`} /> {tts.speakingId === `m${i}` ? "Stop reading" : "Listen"}
+                    </button>
+                  )}
                   {i === msgs.length - 1 && !busy && m.followups && m.followups.length > 0 && (
                     <div className="mt-4 border-t border-line pt-3">
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">Ask next</p>
@@ -193,14 +240,29 @@ export default function CoachWidget() {
                   ask(q);
                 }
               }}
-              placeholder="Ask about your hair…"
+              placeholder={mic.listening ? "Listening… speak now" : "Ask about your hair, in any language…"}
               className="flex-1 resize-none rounded-2xl border border-line bg-paper px-4 py-3 text-sm outline-none focus:border-teal max-h-32"
             />
+            {mic.supported && (
+              <button
+                type="button"
+                onClick={() => (mic.listening ? mic.stop() : mic.start())}
+                disabled={busy}
+                className={`btn !px-3.5 !py-3 border ${mic.listening ? "border-clay bg-clay text-white animate-pulse" : "border-line bg-white hover:bg-shell"}`}
+                aria-pressed={mic.listening}
+                aria-label={mic.listening ? "Stop voice input" : "Ask by voice"}
+                title={mic.listening ? "Stop" : "Ask by voice"}
+              >
+                <MicIcon />
+              </button>
+            )}
             <button className="btn-primary !px-4 !py-3" disabled={busy || !q.trim()} aria-label="Send question">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-muted">Enter to send · Shift+Enter for a new line · Esc to close. Cosmetic advice only.</p>
+          <p className="mt-2 text-[11px] text-muted" role="status">
+            {mic.error || (mic.listening ? "Listening — I'll send when you stop talking." : "Enter to send · Shift+Enter for a new line · Esc to close. Cosmetic advice only.")}
+          </p>
         </form>
       </div>
     </>

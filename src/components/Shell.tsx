@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useApp } from "./AppState";
 import { useInstall } from "./Pwa";
+import { DisplayButton, DisplayPanel } from "./Display";
 
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
   return (
@@ -59,6 +60,7 @@ export function Header() {
               <span className="hidden 2xl:inline">Install app</span>
             </button>
           )}
+          <DisplayButton className="hidden sm:block" />
           {!path.startsWith("/samples") && (
             <Link href="/samples" className="btn h-10 !px-3 sm:!px-4 !gap-1.5 whitespace-nowrap border border-amber/40 bg-amber-soft text-ink hover:bg-amber-soft/70">
               <svg viewBox="0 0 24 24" className="hidden min-[400px]:block h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M5 3l14 9-14 9V3z" /></svg>
@@ -83,6 +85,7 @@ export function Header() {
           ))}
           {canInstall && <button onClick={() => { setMenu(false); install(); }} className="rounded-lg px-3 py-3 text-base text-left text-teal hover:bg-shell">Install StrandLab app</button>}
           {iosHint && <p className="px-3 py-2 text-sm text-muted">Install on iPhone: tap <b>Share</b> → <b>Add to Home Screen</b>.</p>}
+          <div className="mt-2 border-t border-line px-3 pt-4 pb-2"><p className="eyebrow mb-3">Display</p><DisplayPanel /></div>
         </nav>
       )}
     </header>

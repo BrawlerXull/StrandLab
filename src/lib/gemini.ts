@@ -13,7 +13,7 @@ let cursor = 0;
 export const geminiConfigured = () => KEYS.length > 0;
 
 /** Generate text. Rotates the starting key on every call and fails over to the next key on 429/403/5xx. */
-export async function generate(prompt: string, opts: { json?: boolean; system?: string } = {}): Promise<string> {
+export async function generate(prompt: string, opts: { json?: boolean; system?: string; images?: { mime: string; data: string }[] } = {}): Promise<string> {
   if (!KEYS.length) throw new Error("No Gemini key configured");
   const start = cursor++ % KEYS.length;
   let lastErr = "";
@@ -25,7 +25,7 @@ export async function generate(prompt: string, opts: { json?: boolean; system?: 
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify({
           ...(opts.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          contents: [{ role: "user", parts: [...(opts.images || []).map((i) => ({ inlineData: { mimeType: i.mime, data: i.data } })), { text: prompt }] }],
           generationConfig: {
             temperature: 0.5,
             ...(opts.json ? { responseMimeType: "application/json" } : {}),

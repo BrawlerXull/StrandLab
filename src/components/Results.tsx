@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { CATEGORIES, shopQuery, shopUrl, shortlist } from "@/lib/catalog";
+import { amazonUrl, CATEGORIES, countryName, countryOf, shopQuery, shopUrl, shortlist } from "@/lib/catalog";
 import { recommend, TAG_INFO, TYPE_MAPPINGS } from "@/lib/rules";
 import type { Profile, Rec, ScoredProduct, Tag } from "@/lib/types";
 import { useApp, type Hist } from "./AppState";
@@ -10,7 +10,7 @@ import LabelCheck from "./LabelCheck";
 import Preview from "./Preview";
 import TracePanel from "./TracePanel";
 import { Outlook, ProgressTracker } from "./Insights";
-import ShopTools from "./ShopTools";
+import ShopTools, { ShareButton } from "./ShopTools";
 import { ChatIcon } from "./Shell";
 import { Sparkle } from "./Coach";
 
@@ -20,6 +20,7 @@ export function contextFor(p: Profile, rec: Rec) {
   const seek = tags.filter((t) => t.score > 0).map((t) => `${TAG_INFO[t.tag].label} (+${t.score}): ${t.why.join("; ")}`);
   const avoid = tags.filter((t) => t.score < 0).map((t) => `${TAG_INFO[t.tag].label} (${t.score}): ${t.why.join("; ")}`);
   return [
+    ...(m.source === "self" ? ["PROFILE SOURCE: self-reported in a no-photo questionnaire, NOT measured by AI. Say 'you reported', not 'measured'; suggest the 4-photo scan when precision matters."] : []),
     `Curl pattern: ${m.type ? `${m.type.mapping} (${m.type.term})` : "not measured"}`,
     `Frizz: ${m.frizz ? `${m.frizz.level}/3 ${m.frizz.term}` : "not measured"}`,
     `Density: ${m.density ? `${m.density.value.toFixed(2)}/3 ${m.density.term}` : "not measured"}`,
@@ -51,7 +52,8 @@ const EXPLAIN: Record<string, { label: string; q: string }> = {
 };
 type TabId = (typeof TABS)[number]["id"];
 
-export default function Results({ title, sampleName, profile, frontUrl, frontBlob, samplePreviews, history, retakeHref, editDetailsHref, onRestart }: {
+export default function Results({ title, sampleName, profile, frontUrl, frontBlob, samplePreviews, history, retakeHref, retakeLabel = "Retake photos", editDetailsHref, onRestart }: {
+  retakeLabel?: string;
   title: string;
   sampleName?: string;
   profile: Profile;
@@ -95,8 +97,9 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
           <h1 className="font-serif text-3xl sm:text-4xl tracking-tight mt-1">{rec.headline}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
+          <ShareButton rec={rec} shop={shop} profile={profile} title={title} className="btn-primary" />
           {editDetailsHref && <Link href={editDetailsHref} className="btn-ghost">Edit answers</Link>}
-          {retakeHref && <Link href={retakeHref} className="btn-ghost">Retake photos</Link>}
+          {retakeHref && <Link href={retakeHref} className="btn-ghost">{retakeLabel}</Link>}
           {onRestart && <Link href="/" onClick={onRestart} className="btn-ghost">Start over</Link>}
         </div>
       </div>
@@ -150,7 +153,8 @@ export default function Results({ title, sampleName, profile, frontUrl, frontBlo
         {tab === "ingredients" && <Ingredients rec={rec} ask={openCoach} />}
         {tab === "routine" && <Routine rec={rec} ask={openCoach} profile={profile} />}
         {tab === "products" && <Products rec={rec} shop={shop} ask={openCoach} profile={profile} title={title} />}
-        {tab === "preview" && (
+        {tab === "preview" && !frontUrl && <NoPhotoPreview />}
+        {tab === "preview" && !!frontUrl && (
           <Preview measured={profile.measured} frontUrl={frontUrl} frontBlob={frontBlob} samplePreviews={samplePreviews} action={<ExplainButton tab="preview" ask={openCoach} />} />
         )}
       </div>
@@ -223,10 +227,20 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach, isSample }: 
   const topSeek = tags.filter((t) => t.score > 0).sort((a, b) => b.score - a.score)[0];
   const topAvoid = tags.filter((t) => t.score < 0).sort((a, b) => a.score - b.score)[0];
   const prev = history.length > 1 ? history[history.length - 2] : null;
+  const self = m.source === "self";
 
   return (
     <div className="space-y-10">
-      <SectionHead id="ov-title" title="Overview" tab="overview" ask={openCoach}>Your measurements and the three things that matter most.</SectionHead>
+      <SectionHead id="ov-title" title="Overview" tab="overview" ask={openCoach}>{self ? "Your answers" : "Your measurements"} and the three things that matter most.</SectionHead>
+      {self && (
+        <div className="rounded-2xl border border-amber/40 bg-amber-soft p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <div className="text-sm">
+            <p className="font-semibold">Self-reported profile · lower confidence</p>
+            <p className="mt-0.5 text-ink/80">Built from your answers, not AI measurements. Most people misjudge their curl pattern by a step or two — the 4-photo scan measures it with YouCam Hair AI.</p>
+          </div>
+          <Link href="/scan" className="btn-primary shrink-0">Take the photo scan</Link>
+        </div>
+      )}
       {m.issues.length > 0 && (
         <div className="rounded-xl border border-amber/40 bg-amber-soft p-4 text-sm" role="alert">
           <p className="font-medium">Some measurements need a better photo</p>
@@ -254,13 +268,23 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach, isSample }: 
       {/* Measurements */}
       <section aria-labelledby="measured">
         <div className="flex items-end justify-between gap-3">
-          <h2 id="measured" className="text-lg font-medium">What we measured</h2>
-          <p className="text-xs text-muted">Measured by YouCam Hair AI · porosity from your answers</p>
+          <h2 id="measured" className="text-lg font-medium">{self ? "What you told us" : "What we measured"}</h2>
+          <p className="text-xs text-muted">{self ? "All values from your answers" : "Measured by YouCam Hair AI · porosity from your answers"}</p>
         </div>
         <div className="mt-3 grid gap-4 lg:grid-cols-[240px_1fr]">
           <div className="card overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={frontUrl} alt="Front photo used for the analysis" className="aspect-[3/4] lg:aspect-auto lg:h-full w-full object-cover" />
+            {frontUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={frontUrl} alt="Front photo used for the analysis" className="aspect-[3/4] lg:aspect-auto lg:h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full min-h-48 flex-col items-center justify-center gap-2 bg-shell p-6 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-teal" aria-hidden>
+                  <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
+                </span>
+                <p className="text-sm font-medium">No photo used</p>
+                <Link href="/scan" className="text-xs text-teal underline">Add photos for measured results</Link>
+              </div>
+            )}
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Stat label="Curl pattern" value={m.type?.mapping.toUpperCase() ?? "Not measured"} sub={m.type?.term} explain="1 = straight, 2 = wavy, 3 = curly, 4 = coily. Letters a–c go from looser to tighter.">
@@ -302,8 +326,21 @@ function Overview({ profile, rec, frontUrl, history, go, openCoach, isSample }: 
         </button>
       </section>
 
-      <TracePanel measured={m} />
+      {!self && <TracePanel measured={m} />}
     </div>
+  );
+}
+
+function NoPhotoPreview() {
+  return (
+    <section className="card p-6 sm:p-8 text-center max-w-2xl mx-auto">
+      <h2 className="h2">The preview needs one photo</h2>
+      <p className="mt-2 text-ink/75">The realistic-vs-ad-promise preview is rendered on your own face with YouCam virtual try-on, so it needs a front photo. Nothing else changes.</p>
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <Link href="/scan" className="btn-primary">Take the photo scan</Link>
+        <Link href="/samples/maya#preview" className="btn-ghost">See a sample preview</Link>
+      </div>
+    </section>
   );
 }
 
@@ -451,6 +488,7 @@ function Products({ rec, shop, ask, profile, title }: { rec: Rec; shop: Record<s
   const fam = profile.measured.type?.family ?? "wavy";
   const kit = CATEGORIES.map((c) => shop[c][0]).filter((p) => p.match >= 50);
   const total = kit.reduce((a, p) => a + p.price, 0);
+  const cc = countryOf(profile.climate?.place);
   return (
     <section aria-labelledby="pr-title">
       <SectionHead id="pr-title" title="Products matched to you" tab="products" ask={ask}>
@@ -459,15 +497,16 @@ function Products({ rec, shop, ask, profile, title }: { rec: Rec; shop: Record<s
       </SectionHead>
       <ShopTools rec={rec} shop={shop} profile={profile} title={title} />
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} query={shopQuery(c, rec, fam)} />)}
+        {CATEGORIES.map((c) => <CategoryCard key={c} category={c} items={shop[c]} query={shopQuery(c, rec, fam)} cc={cc} />)}
         <LabelCheck rec={rec} />
       </div>
-      <p className="mt-4 text-xs text-muted">The ranked cards use a demo catalogue of fictional products to show how matching works; “Shop real … like this” searches real retailers with the same rules. Match % is calculated from the ingredient rules.</p>
+      <p className="mt-4 text-xs text-muted">The ranked cards use a demo catalogue of fictional products to show how matching works; “Shop real … like this” searches real retailers with the same rules{cc ? ` in ${countryName(cc)} (from your location)` : ""}. Match % is calculated from the ingredient rules.</p>
     </section>
   );
 }
 
-function CategoryCard({ category, items, query }: { category: string; items: ScoredProduct[]; query: string }) {
+function CategoryCard({ category, items, query, cc }: { category: string; items: ScoredProduct[]; query: string; cc?: string }) {
+  const amz = amazonUrl(query, cc);
   const [open, setOpen] = useState(false);
   return (
     <div className="card p-5 flex flex-col">
@@ -479,10 +518,14 @@ function CategoryCard({ category, items, query }: { category: string; items: Sco
           {open ? "Show less" : `Compare ${items.length - 1} more`}
         </button>
       )}
-      <a href={shopUrl(query)} target="_blank" rel="noopener noreferrer" className="mt-4 pt-3 border-t border-line text-sm font-medium text-teal hover:underline">
-        Shop real {category} like this ↗<span className="block text-xs font-normal text-muted">Searches “{query}”</span>
-        <span className="sr-only">(opens in a new tab)</span>
-      </a>
+      <div className="mt-4 pt-3 border-t border-line">
+        <p className="text-sm font-medium">Shop real {category} like this{cc ? ` in ${countryName(cc)}` : ""}</p>
+        <p className="text-xs text-muted">Searches “{query}”</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <a href={shopUrl(query, cc)} target="_blank" rel="noopener noreferrer" className="chip hover:bg-shell text-teal-dark">Google Shopping ↗<span className="sr-only"> (opens in a new tab)</span></a>
+          <a href={amz.url} target="_blank" rel="noopener noreferrer" className="chip hover:bg-shell text-teal-dark">{amz.host} ↗<span className="sr-only"> (opens in a new tab)</span></a>
+        </div>
+      </div>
     </div>
   );
 }

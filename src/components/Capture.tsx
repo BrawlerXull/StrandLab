@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { faceBox, fileToImage, toJpeg } from "@/lib/client";
+import { detectLive, faceBox, fileToImage, getVideoDetector, toJpeg, type LiveFace } from "@/lib/client";
 import type { FaceBox, Shot } from "@/lib/types";
 import { SHOTS } from "@/lib/types";
 import { FlowNav } from "./Shell";
@@ -71,6 +71,7 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
         <li className="chip">Hair loose, not tied up</li>
         <li className="chip">No hat or headband</li>
         <li className="chip">We auto-frame each photo</li>
+        <li className="chip">📸 Camera talks you through it &amp; shoots hands-free</li>
       </ul>
 
       <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -114,6 +115,10 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
       <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
 
       <p className="mt-4 text-sm text-muted">Uploading from your gallery? Select all four files at once and they fill the slots in order.</p>
+      <p className="mt-2 text-sm text-muted">
+        Can&apos;t or don&apos;t want to take photos (no camera, privacy, head covering)?{" "}
+        <a href="/quick" className="text-teal underline font-medium">Use the no-photo check</a> — a self-reported plan from 4 questions.
+      </p>
 
       {camFor && <CameraModal shot={camFor} onClose={() => setCamFor(null)} onShot={async (b) => { const s = camFor; setCamFor(null); await accept(s, b); const next = SHOTS.find((x) => x !== s && !photos[x]); if (next) setCamFor(next); }} />}
     </section>
@@ -122,13 +127,90 @@ export default function Capture({ photos, setPhoto, onDone, onBack }: {
   );
 }
 
+// ---------- Guided camera: live pose checks, spoken prompts, hands-free auto-capture ----------
+
+type Verdict = { ok: boolean; say: string; tone: "good" | "fix" | "wait" };
+
+/** Head-down calibration: the front shot records the neutral nose-below-eyes ratio. */
+let neutralPitch: number | null = null;
+
+function pose(f: LiveFace) {
+  const [re, le, nose] = f.kp;
+  if (!re || !le || !nose) return null;
+  const eyeMid = { x: (re.x + le.x) / 2, y: (re.y + le.y) / 2 };
+  const eyeDist = Math.hypot(re.x - le.x, re.y - le.y) || 0.001;
+  return {
+    yaw: (nose.x - eyeMid.x) / eyeDist, // 0 = facing camera; |yaw| > ~0.3 ≈ 35–45° turn
+    pitch: (nose.y - eyeMid.y) / eyeDist, // smaller = head tipped down
+  };
+}
+
+function judge(shot: Shot, f: LiveFace | null, dark: boolean): Verdict {
+  if (dark) return { ok: false, say: "It's a bit dark. Face a window or a lamp.", tone: "fix" };
+  if (!f) return { ok: false, say: shot === "tilt" ? "Tip your head forward, but keep your face in view." : "I can't see your face yet. Look at the screen.", tone: "wait" };
+  const cx = f.box.x + f.box.w / 2,
+    cy = f.box.y + f.box.h / 2;
+  if (f.box.w < 0.22) return { ok: false, say: "Move a little closer.", tone: "fix" };
+  if (f.box.w > 0.6) return { ok: false, say: "Move back a little so all your hair fits.", tone: "fix" };
+  // Camera faces the user, so the camera's left is the user's right.
+  if (cx < 0.33) return { ok: false, say: "Move a little to your left.", tone: "fix" };
+  if (cx > 0.67) return { ok: false, say: "Move a little to your right.", tone: "fix" };
+  if (cy < 0.22) return { ok: false, say: "Lower the camera slightly.", tone: "fix" };
+  if (cy > 0.68) return { ok: false, say: "Raise the camera slightly.", tone: "fix" };
+  const p = pose(f);
+  if (!p) return { ok: true, say: "Hold still…", tone: "good" };
+  if (shot === "front") {
+    if (Math.abs(p.yaw) > 0.18) return { ok: false, say: "Look straight at the camera.", tone: "fix" };
+  } else if (shot === "right" || shot === "left") {
+    if (Math.abs(p.yaw) < 0.28) return { ok: false, say: `Turn your head to your ${shot}, about halfway.`, tone: "fix" };
+    if (Math.abs(p.yaw) > 0.9) return { ok: false, say: "Turn back a little — keep one eye visible.", tone: "fix" };
+  } else if (shot === "tilt") {
+    const target = neutralPitch ? neutralPitch * 0.72 : 0.42;
+    if (p.pitch > target) return { ok: false, say: "Tip your head further forward so your parting shows.", tone: "fix" };
+  }
+  return { ok: true, say: "Perfect — hold still.", tone: "good" };
+}
+
 function CameraModal({ shot, onClose, onShot }: { shot: Shot; onClose: () => void; onShot: (b: Blob) => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const [err, setErr] = useState("");
   const [count, setCount] = useState<number | null>(null);
+  const [auto, setAuto] = useState(true);
+  const [voice, setVoice] = useState(true);
+  const [v, setV] = useState<Verdict>({ ok: false, say: "Starting the camera…", tone: "wait" });
+  const [hold, setHold] = useState(0); // 0..1 progress of the steady-pose timer
+  const autoRef = useRef(auto);
+  const voiceRef = useRef(voice);
+  const taken = useRef(false);
+  autoRef.current = auto;
+  voiceRef.current = voice;
+
+  const say = useRef((t: string) => {
+    if (!voiceRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.rate = 1.05;
+    window.speechSynthesis.speak(u);
+  });
+
+  async function capture() {
+    if (taken.current || !video.current) return;
+    taken.current = true;
+    const f = video.current;
+    // Remember the neutral head pitch from the front shot to judge the tip-forward shot.
+    if (shot === "front" && lastFace.current) {
+      const p = pose(lastFace.current);
+      if (p) neutralPitch = p.pitch;
+    }
+    say.current("Got it.");
+    onShot(await toJpeg(f, 1280, true));
+  }
+  const lastFace = useRef<LiveFace | null>(null);
 
   useEffect(() => {
     let stream: MediaStream | null = null;
+    let raf = 0;
+    let stopped = false;
     navigator.mediaDevices
       ?.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 1706 } }, audio: false })
       .then((s) => {
@@ -136,11 +218,65 @@ function CameraModal({ shot, onClose, onShot }: { shot: Shot; onClose: () => voi
         if (video.current) video.current.srcObject = s;
       })
       .catch(() => setErr("Camera unavailable — use Upload instead."));
+
+    // Live guidance loop (~8 fps).
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 24;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    let last = 0,
+      goodSince = 0,
+      lastSaid = "",
+      lastSaidAt = 0,
+      darkCheckAt = 0,
+      dark = false;
+    getVideoDetector().then((det) => {
+      say.current(`${GUIDE[shot].title}. ${GUIDE[shot].tip}`);
+      lastSaidAt = performance.now();
+      const tick = (t: number) => {
+        if (stopped) return;
+        raf = requestAnimationFrame(tick);
+        const el = video.current;
+        if (!el || el.readyState < 2 || t - last < 120 || taken.current) return;
+        last = t;
+        if (t - darkCheckAt > 1000 && ctx) {
+          darkCheckAt = t;
+          ctx.drawImage(el, 0, 0, 24, 24);
+          const d = ctx.getImageData(0, 0, 24, 24).data;
+          let sum = 0;
+          for (let i = 0; i < d.length; i += 4) sum += d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+          dark = sum / (d.length / 4) < 55;
+        }
+        const face = det ? detectLive(det, el, t) : null;
+        lastFace.current = face;
+        const verdict = det ? judge(shot, face, dark) : { ok: false, say: "Auto-guide unavailable — tap Take photo.", tone: "wait" as const };
+        setV(verdict);
+        // Speak changes, but not more than every ~2.5 s, and never repeat the same line back-to-back quickly.
+        if (verdict.say !== lastSaid && t - lastSaidAt > 2500) {
+          lastSaid = verdict.say;
+          lastSaidAt = t;
+          say.current(verdict.say);
+        }
+        if (verdict.ok && autoRef.current) {
+          if (!goodSince) goodSince = t;
+          const pr = Math.min(1, (t - goodSince) / 1200);
+          setHold(pr);
+          if (pr >= 1) capture();
+        } else {
+          goodSince = 0;
+          setHold(0);
+        }
+      };
+      raf = requestAnimationFrame(tick);
+    });
+
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
       window.removeEventListener("keydown", onKey);
       stream?.getTracks().forEach((t) => t.stop());
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -153,27 +289,52 @@ function CameraModal({ shot, onClose, onShot }: { shot: Shot; onClose: () => voi
       if (n > 0) return setCount(n);
       clearInterval(id);
       setCount(null);
-      if (video.current) onShot(await toJpeg(video.current, 1280, true));
+      capture();
     }, 800);
   }
 
+  const ring = v.tone === "good" ? "#3FA796" : v.tone === "fix" ? "#E0A040" : "#FFFFFF";
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Camera: ${GUIDE[shot].title}`}>
+    <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Camera: ${GUIDE[shot].title}`}>
       <div className="w-full max-w-md">
         <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-black">
           <video ref={video} autoPlay playsInline muted className="absolute inset-0 h-full w-full object-cover -scale-x-100" />
-          {/* Framing guide: face oval ≈ 60% width */}
-          <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full pointer-events-none">
-            <ellipse cx="150" cy="190" rx="90" ry="118" fill="none" stroke="white" strokeOpacity=".8" strokeWidth="2" strokeDasharray="6 6" />
+          {/* Framing guide changes colour with the live check; fills as the steady-pose timer runs */}
+          <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full pointer-events-none" aria-hidden>
+            <ellipse cx="150" cy="190" rx="90" ry="118" fill="none" stroke={ring} strokeOpacity=".9" strokeWidth={v.tone === "good" ? 4 : 2} strokeDasharray={v.tone === "good" ? undefined : "6 6"} />
+            {hold > 0 && <ellipse cx="150" cy="190" rx="98" ry="126" fill="none" stroke="#3FA796" strokeWidth="6" strokeLinecap="round" pathLength={100} strokeDasharray={`${hold * 100} 100`} transform="rotate(-90 150 190)" />}
           </svg>
-          <p className="absolute top-3 inset-x-3 text-center text-white text-sm bg-black/40 rounded-full px-3 py-1">{GUIDE[shot].title}: {GUIDE[shot].tip}</p>
+          <p className="absolute top-3 inset-x-3 text-center text-white text-sm bg-black/50 rounded-full px-3 py-1">{GUIDE[shot].title}: {GUIDE[shot].tip}</p>
+          <p
+            role="status"
+            aria-live="polite"
+            className={`absolute bottom-3 inset-x-3 text-center text-base font-semibold rounded-2xl px-4 py-2 ${v.tone === "good" ? "bg-[#3FA796] text-white" : v.tone === "fix" ? "bg-amber-soft text-ink" : "bg-black/60 text-white"}`}
+          >
+            {v.say}
+          </p>
           {count !== null && <div className="absolute inset-0 flex items-center justify-center text-white text-7xl font-serif">{count}</div>}
-          {err && <p className="absolute inset-0 flex items-center justify-center text-white p-6 text-center">{err}</p>}
+          {err && <p className="absolute inset-0 flex items-center justify-center bg-black/70 text-white p-6 text-center">{err}</p>}
         </div>
-        <div className="mt-4 flex justify-center gap-3">
+        <div className="mt-3 flex flex-wrap justify-center gap-2 text-sm">
+          <button onClick={() => setAuto(!auto)} aria-pressed={auto} className={`rounded-full border px-3 py-1.5 ${auto ? "border-white bg-white text-ink" : "border-white/40 text-white"}`}>
+            Auto-capture {auto ? "on" : "off"}
+          </button>
+          <button
+            onClick={() => {
+              if (voice && "speechSynthesis" in window) window.speechSynthesis.cancel();
+              setVoice(!voice);
+            }}
+            aria-pressed={voice}
+            className={`rounded-full border px-3 py-1.5 ${voice ? "border-white bg-white text-ink" : "border-white/40 text-white"}`}
+          >
+            Voice guide {voice ? "on" : "off"}
+          </button>
+        </div>
+        <div className="mt-3 flex justify-center gap-3">
           <button className="btn-ghost" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={snap} disabled={!!err || count !== null}>Take photo (3s)</button>
+          <button className="btn-primary" onClick={snap} disabled={!!err || count !== null}>Take photo now (3s)</button>
         </div>
+        <p className="mt-2 text-center text-xs text-white/70">{auto ? "Hold the pose — the photo takes itself when the oval turns green." : "Tap Take photo when you're ready."}</p>
       </div>
     </div>
   );

@@ -11,18 +11,19 @@ Curly, wavy and coily shoppers famously buy and abandon dozens of products. Labe
 YouCam's hair diagnostics can measure what people currently guess, yet almost every hair project uses only colour or style try-on. We wanted Skin-AI-style diagnostics for hair, connected directly to shopping.
 
 ## What it does
-1. **Four guided photos:** front, left, right, and head tipped forward. A camera guide and auto-framing help, and gallery uploads work too.
+1. **Four guided photos:** front, left, right, and head tipped forward. The camera checks your pose live (distance, centring, head turn, head tip, lighting), talks you through it out loud, and takes the photo itself when the pose is right, so you can do the tipped-forward shot alone. Gallery uploads work too. **No camera or prefer not to share photos?** A no-photo check builds a clearly labelled, self-reported plan from 4 picture-based questions.
 2. **Four YouCam detectors measure the hair:** curl pattern (Hair Type Detection), frizz 0–3 (Hair Frizziness Detection), density 0–3 (Hair Density Detection) and length (Hair Length Detection). They run in parallel with live progress.
 3. **Two things a camera can't see:** a 4-question porosity check, and the live dew point for your city.
 4. **An explainable plan:** ingredients to look for and avoid, each naming the measurement behind it (e.g. "Avoid glycerin: 22 °C dew point means humid air makes it swell and frizz"). It also includes a wash-day routine and a day-by-day routine for the week based on the forecast.
 5. **Shopping:**
    - a ranked starter kit
-   - a "Shop real … like this" search built from your rules
-   - a label checker: paste any ingredient list, Gemini maps it to ingredient families, and deterministic rules score it
-   - copy, print or save your plan as a shopping list
+   - a "Shop real … like this" search built from your rules, localised to your country (Google Shopping region + the right Amazon store, e.g. amazon.in, amazon.co.uk)
+   - a label checker: **photograph the back of a bottle in the shop** (Gemini reads the ingredient list) or paste it; Gemini maps it to ingredient families, and deterministic rules score it
+   - share your plan (phone share sheet, WhatsApp, email), copy it, or print / save it as a PDF
 6. **Expectation check:** YouCam Hair Volume / Wavy Hair try-on shows the realistic result of the routine next to the "ad promise", on your own photo.
-7. **Coach:** available on every page and grounded in your measurements. It offers follow-up questions, an "Explain this section" button in each section, and "Ask why" on every ingredient and step.
-8. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
+7. **Coach:** available on every page and grounded in your measurements. It offers follow-up questions, an "Explain this section" button in each section, and "Ask why" on every ingredient and step. **Ask by voice, hear answers read aloud, and get replies in 17 languages** (auto-detects the language you write or speak in: Hindi, Spanish, Portuguese, Arabic, Swahili, Yoruba and more).
+8. **Accessible to everyone:** text size and high-contrast settings, and 0 axe-core WCAG 2.1 AA violations across every page in both display modes.
+9. **Proof it works:** re-scan in two weeks (calendar reminder included) and StrandLab charts whether frizz actually dropped. Scans are stored only on your device.
 
 ## How we built it
 - **App:** Next.js 14 + TypeScript + Tailwind, deployed on Vercel, installable as a PWA with offline support.
@@ -47,7 +48,7 @@ Building the auto-framing ladder turned "photo rejected" into a measurement for 
 ## Accomplishments we're proud of
 - Six YouCam APIs are used, and the output of one decides the next call.
 - No black box: every recommendation shows its reason, and every YouCam call is visible in the app.
-- It's a complete product, from landing page to installable app, with accessibility built in.
+- It's a complete product, from landing page to installable app, with accessibility built in: 0 automated WCAG 2.1 AA violations, voice in/out, 17 languages, a no-photo route and a hands-free camera.
 
 ## What we learned
 Hair care depends as much on the environment (dew point) and on hidden properties (porosity) as on what the camera sees. The value comes from combining all three.
@@ -65,4 +66,7 @@ Open https://strandlab-youcam.vercel.app. No login is needed.
 
 - **Fastest:** click **Try a sample** in the header (or open https://strandlab-youcam.vercel.app/samples) and pick Maya, Lena or Zola. These are pre-computed real YouCam results.
 - **Full flow:** Start free scan → add 4 photos (camera or upload) → answer 4 questions + city → results (about 20–40 s).
-- **Coach:** "Ask the coach" (bottom right) or "Explain this section" in any results tab.
+- **Coach:** "Ask the coach" (bottom right) or "Explain this section" in any results tab. Try the mic, "Listen", or set "Reply in" to हिन्दी / Español.
+- **Label photo:** Products tab → "Scan a label with your camera" (or upload a photo of any ingredient list).
+- **No-photo check:** https://strandlab-youcam.vercel.app/quick
+- **Display:** the "Aa" button in the header (text size, high contrast).

@@ -2,6 +2,7 @@
 // With context: grounded in the measured profile + rule-engine output. Without: general hair-care help.
 import { NextResponse } from "next/server";
 import { generate } from "@/lib/gemini";
+import { langById } from "@/lib/langs";
 
 export const runtime = "nodejs";
 
@@ -17,8 +18,9 @@ const ABOUT = `About StrandLab (the app you live in): users take 4 photos; YouCa
 
 export async function POST(req: Request) {
   try {
-    const { context, question, history } = (await req.json()) as {
+    const { context, question, history, lang } = (await req.json()) as {
       context?: string;
+      lang?: string;
       question: string;
       history?: { role: "user" | "coach"; text: string }[];
     };
@@ -35,6 +37,10 @@ export async function POST(req: Request) {
             : "Give general guidance. When advice depends on the person's hair, briefly suggest running a StrandLab scan for a personal answer.",
           "Cosmetic advice only: for hair loss, scalp pain, sudden shedding or irritation, recommend a dermatologist.",
           STYLE,
+          // Language: an explicit choice wins; otherwise mirror the user. Keep JSON keys in English.
+          langById(lang).name
+            ? `LANGUAGE: Write "answer" and every "followups" item in ${langById(lang).name}, whatever language the question is in. Keep ingredient INCI names (e.g. glycerin) recognisable, adding the local word in brackets if common.`
+            : `LANGUAGE: Write "answer" and "followups" in the same language as the user's latest message (e.g. Hindi in, Hindi out; Hinglish in, Hinglish out). Default to English.`,
         ].join("\n\n"),
         json: true,
       },

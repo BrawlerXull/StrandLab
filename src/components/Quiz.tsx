@@ -16,8 +16,9 @@ export function porosityFrom(answers: (number | null)[]): Porosity {
   return s <= -2 ? "low" : s >= 2 ? "high" : "normal";
 }
 
-export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, onBack, analyzing, waiting, status }: {
+export default function Quiz({ answers, setAnswers, climate, setClimate, onDone, onBack, analyzing, waiting, status, backLabel = "Photos" }: {
   status?: React.ReactNode;
+  backLabel?: string;
   answers: (number | null)[];
   setAnswers: (a: (number | null)[]) => void;
   climate: Climate | null;
@@ -125,7 +126,7 @@ export default function Quiz({ answers, setAnswers, climate, setClimate, onDone,
     </section>
     <FlowNav
       back={onBack}
-      backLabel="Photos"
+      backLabel={backLabel}
       next={onDone}
       nextDisabled={!done || waiting}
       nextLabel={waiting ? "Finishing analysis…" : "See my results →"}

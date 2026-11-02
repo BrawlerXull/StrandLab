@@ -20,6 +20,8 @@ export type Measured = {
   framing: Record<string, string>;
   /** Every YouCam call made, with each auto-framing attempt and its outcome. */
   trace?: TraceEntry[];
+  /** "self" = no-photo route: values come from the user's answers, not YouCam. */
+  source?: "youcam" | "self";
 };
 
 export type TraceEntry = {

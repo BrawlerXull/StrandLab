@@ -21,6 +21,8 @@ type State = {
   progress: Record<Part, "idle" | "running" | "done" | "error">;
   error: string;
   startAnalysis: () => void;
+  /** No-photo route: store a self-reported profile and skip the AI analysis. */
+  setSelfMeasured: (m: Measured) => void;
   frontUrl: string | null;
   history: Hist[];
   reset: () => void;
@@ -165,6 +167,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setAnalyzing(false);
   }, [photos]);
 
+  const setSelfMeasured = useCallback((m: Measured) => {
+    runId.current++;
+    setPhotos({});
+    setFrontUrl(null);
+    setAnalyzing(false);
+    setError("");
+    setMeasured({ ...m, source: "self" });
+  }, []);
+
   const reset = useCallback(() => {
     runId.current++;
     setPhotos({});
@@ -192,6 +203,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     progress,
     error,
     startAnalysis,
+    setSelfMeasured,
     frontUrl,
     history,
     reset,

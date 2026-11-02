@@ -5,6 +5,7 @@ import { AppProvider } from "@/components/AppState";
 import { Footer, Header } from "@/components/Shell";
 import CoachWidget from "@/components/Coach";
 import { RegisterSW } from "@/components/Pwa";
+import { DISPLAY_BOOT } from "@/lib/display";
 
 const serif = Fraunces({ subsets: ["latin"], variable: "--font-serif", weight: ["400", "500", "600"], style: ["normal", "italic"] });
 const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -23,7 +24,11 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply saved text size / contrast before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: DISPLAY_BOOT }} />
+      </head>
       <body className={`${serif.variable} ${sans.variable} ${mono.variable} font-sans bg-paper text-ink antialiased min-h-screen flex flex-col`}>
         <AppProvider>
           <Header />

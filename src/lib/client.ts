@@ -54,6 +54,49 @@ function getDetector() {
   return detectorP;
 }
 
+// ---- Live (VIDEO-mode) detector for the guided camera ----
+export type LiveFace = { box: { x: number; y: number; w: number; h: number }; kp: { x: number; y: number }[] };
+type VideoDetector = {
+  detectForVideo: (v: HTMLVideoElement, ts: number) => { detections: { boundingBox?: { originX: number; originY: number; width: number; height: number }; keypoints?: { x: number; y: number }[] }[] };
+};
+let videoP: Promise<VideoDetector | null> | null = null;
+
+export function getVideoDetector() {
+  if (!videoP)
+    videoP = (async () => {
+      try {
+        const v = await import("@mediapipe/tasks-vision");
+        const fileset = await v.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+        return (await v.FaceDetector.createFromOptions(fileset, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+          },
+          runningMode: "VIDEO",
+          minDetectionConfidence: 0.35,
+        })) as unknown as VideoDetector;
+      } catch {
+        return null;
+      }
+    })();
+  return videoP;
+}
+
+/** Largest face in the current video frame, normalised to 0..1 (unmirrored camera coordinates). */
+export function detectLive(d: VideoDetector, v: HTMLVideoElement, ts: number): LiveFace | null {
+  try {
+    const W = v.videoWidth,
+      H = v.videoHeight;
+    if (!W || !H) return null;
+    const r = d.detectForVideo(v, ts).detections.filter((x) => x.boundingBox);
+    const b = r.sort((a, c) => c.boundingBox!.width * c.boundingBox!.height - a.boundingBox!.width * a.boundingBox!.height)[0];
+    if (!b) return null;
+    const bb = b.boundingBox!;
+    return { box: { x: bb.originX / W, y: bb.originY / H, w: bb.width / W, h: bb.height / H }, kp: (b.keypoints || []).map((k) => ({ x: k.x, y: k.y })) };
+  } catch {
+    return null;
+  }
+}
+
 export async function faceBox(img: HTMLImageElement): Promise<FaceBox | null> {
   const d = await getDetector();
   if (!d) return null;
