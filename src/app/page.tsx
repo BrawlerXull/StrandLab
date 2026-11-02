@@ -1,21 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppState";
 import { ChatIcon } from "@/components/Shell";
-import type { Measured } from "@/lib/types";
-
-type SampleCard = { id: string; name: string; blurb: string; measured: Measured };
-const SAMPLE_IDS = ["maya", "lena", "zola"];
+import { SampleGrid, SampleStrip } from "@/components/SamplePicker";
 
 export default function Landing() {
   const { openCoach, measured } = useApp();
-  const [samples, setSamples] = useState<SampleCard[]>([]);
-  useEffect(() => {
-    Promise.all(SAMPLE_IDS.map((id) => fetch(`/samples/${id}/data.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null))).then((s) =>
-      setSamples(s.filter(Boolean)),
-    );
-  }, []);
 
   return (
     <>
@@ -32,7 +22,10 @@ export default function Landing() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/scan" className="btn-primary !px-6 !py-3 !text-base">Start free scan →</Link>
-            <Link href="/samples/maya" className="btn-ghost !px-6 !py-3 !text-base">See an example result</Link>
+            <Link href="/samples" className="btn-ghost !px-6 !py-3 !text-base">View sample results</Link>
+          </div>
+          <div className="mt-6 rounded-2xl border border-teal/25 bg-white/70 p-3 sm:p-4">
+            <SampleStrip label="No photos? Open a real result instantly:" />
           </div>
           <ul className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-muted" aria-label="Highlights">
             <li className="flex items-center gap-2"><Tick /> ~2 minutes</li>
@@ -97,24 +90,7 @@ export default function Landing() {
         <p className="eyebrow">Sample results</p>
         <h2 className="h2 mt-2">Explore a full result before you scan</h2>
         <p className="mt-2 text-muted max-w-2xl">These people are AI-generated; their measurements are real YouCam Hair AI results.</p>
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          {samples.map((s) => (
-            <Link key={s.id} href={`/samples/${s.id}`} className="card overflow-hidden group">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/samples/${s.id}/front.jpg`} alt="" className="aspect-[4/3] w-full object-cover object-top group-hover:opacity-95" />
-              <div className="p-4">
-                <p className="font-medium">{s.name} <span className="text-muted font-normal">— {s.blurb}</span></p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  <span className="chip">Curl {s.measured.type?.mapping.toUpperCase()}</span>
-                  <span className="chip">Frizz {s.measured.frizz?.level}/3</span>
-                  <span className="chip">{s.measured.density?.term}</span>
-                </div>
-                <p className="mt-3 text-sm text-teal font-medium group-hover:underline">View {s.name}&apos;s results →</p>
-              </div>
-            </Link>
-          ))}
-          {samples.length === 0 && [0, 1, 2].map((i) => <div key={i} className="card h-72 skeleton" />)}
-        </div>
+        <div className="mt-8"><SampleGrid /></div>
       </section>
 
       {/* FAQ */}

@@ -2,7 +2,7 @@
 
 **Tagline:** Your hair type, measured. Then only the products that suit it.
 
-**Live demo:** https://strandlab-youcam.vercel.app (no login needed. Fastest look: Sample results → Maya)
+**Live demo:** https://strandlab-youcam.vercel.app (no login needed). Fastest look, no photos: https://strandlab-youcam.vercel.app/samples
 **Repo:** https://github.com/BrawlerXull/StrandLab
 
 ## Inspiration
@@ -63,6 +63,6 @@ nextjs · typescript · tailwindcss · youcam-api (hair-type-detection, hair-fri
 ## Testing instructions
 Open https://strandlab-youcam.vercel.app. No login is needed.
 
-- **Fastest:** Sample results → Maya / Lena / Zola. These are pre-computed real YouCam results.
+- **Fastest:** click **Try a sample** in the header (or open https://strandlab-youcam.vercel.app/samples) and pick Maya, Lena or Zola. These are pre-computed real YouCam results.
 - **Full flow:** Start free scan → add 4 photos (camera or upload) → answer 4 questions + city → results (about 20–40 s).
 - **Coach:** "Ask the coach" (bottom right) or "Explain this section" in any results tab.

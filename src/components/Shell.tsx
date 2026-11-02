@@ -16,7 +16,7 @@ export function Logo({ className = "h-8 w-8" }: { className?: string }) {
 
 const NAV = [
   { href: "/#how", label: "How it works" },
-  { href: "/#samples", label: "Sample results" },
+  { href: "/samples", label: "Sample results" },
   { href: "/learn", label: "Hair science" },
   { href: "/#faq", label: "FAQ" },
 ];
@@ -30,7 +30,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/90 backdrop-blur safe-top">
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 btn-dark">Skip to content</a>
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 sm:gap-3 px-4 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 rounded-lg" aria-label="StrandLab home">
           <Logo />
           <span className="font-serif text-xl tracking-tight whitespace-nowrap">StrandLab</span>
@@ -58,6 +58,12 @@ export function Header() {
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
               <span className="hidden 2xl:inline">Install app</span>
             </button>
+          )}
+          {!path.startsWith("/samples") && (
+            <Link href="/samples" className="btn h-10 !px-3 sm:!px-4 !gap-1.5 whitespace-nowrap border border-amber/40 bg-amber-soft text-ink hover:bg-amber-soft/70">
+              <svg viewBox="0 0 24 24" className="hidden min-[400px]:block h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M5 3l14 9-14 9V3z" /></svg>
+              <span className="sm:hidden">Samples</span><span className="hidden sm:inline">Try a sample</span>
+            </Link>
           )}
           <button onClick={() => openCoach()} className="btn-ghost h-10 !px-3 sm:!px-4 whitespace-nowrap" aria-label="Ask the hair coach">
             <ChatIcon /> <span className="hidden sm:inline">Ask the coach</span>

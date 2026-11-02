@@ -11,7 +11,7 @@ Hair-care labels assume you know whether you're "3A", "fine" or "high porosity".
 3. **Explains** which ingredient families to look for or avoid. Each recommendation names the measurement behind it.
 4. **Shops** for you with ranked products, a checker for any label you paste, and a realistic try-on next to the "ad promise".
 
-> Try it in 10 seconds without photos: open **Sample results → Maya** (AI-generated person, real YouCam measurements).
+> Try it in 10 seconds without photos: https://strandlab-youcam.vercel.app/samples (one click from the header **Try a sample** button or the hero). AI-generated people, real YouCam measurements.
 
 ---
 
