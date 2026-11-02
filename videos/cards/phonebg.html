@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Inter:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{width:1280px;height:720px;overflow:hidden;background:#F6F3EE;color:#1F2A2A;font-family:Inter,system-ui,sans-serif}
+.bg{position:absolute;inset:0;background:radial-gradient(600px 500px at 78% 50%,#DCEAE7 0%,transparent 70%),radial-gradient(500px 400px at 0% 100%,#F6E7CF 0%,transparent 70%)}
+.glow{position:absolute;left:800px;top:52px;width:310px;height:617px;border-radius:44px;box-shadow:0 40px 90px rgba(31,42,42,.28),0 10px 30px rgba(31,42,42,.18)}
+.col{position:absolute;left:96px;top:120px;width:620px}
+.eb{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#8A5614;font-weight:600}
+h1{font-family:Fraunces,Georgia,serif;font-weight:500;font-size:52px;line-height:1.06;margin-top:14px;letter-spacing:-.01em}
+h1 em{color:#2F6B66}
+ul{list-style:none;padding:0;margin-top:34px}
+li{display:flex;align-items:center;gap:16px;font-size:22px;padding:13px 0;border-bottom:1px solid #DCD3C5;opacity:.0;transform:translateX(-14px);transition:all .5s cubic-bezier(.2,.8,.2,1)}
+li.on{opacity:1;transform:none}
+li .k{flex:none;width:40px;height:40px;border-radius:12px;background:#2F6B66;color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px}
+li b{font-weight:600}
+li small{display:block;font-size:15px;color:#5C635F;margin-top:2px}
+</style></head><body><div class="bg"></div><div class="glow"></div>
+<div class="col"><div class="eb" id="eb"></div><h1 id="h1"></h1><ul id="ul"></ul></div>
+<script>
+const V={
+ pwa:{eb:"Installable app · PWA",h1:"Lives on your <em>home screen</em>",items:[
+  ["⤓","Install from the browser","No app store, no download wait"],
+  ["⛶","Opens full screen","Like a native app, with its own icon"],
+  ["🛒","One tap away in the aisle","Check a product before you buy"],
+  ["◉","Uses your phone's camera","Guided photos, hands-free"],
+  ["⚡","Still opens offline","An offline page instead of an error"]]},
+ access:{eb:"Built for everyone",h1:"Accessible <em>by design</em>",items:[
+  ["✋","No-photo check","Four picture questions, no selfie needed"],
+  ["A+","Bigger text","Three sizes, remembered on the device"],
+  ["◐","High-contrast mode","Every colour pair at 7 : 1 or better"],
+  ["🎙","Voice in, voice out","Speak your question, hear the answer"],
+  ["↗","Share your plan","Send it to your stylist in one tap"]]}};
+const v=V[new URLSearchParams(location.search).get("v")||"pwa"];
+document.getElementById("eb").textContent=v.eb;document.getElementById("h1").innerHTML=v.h1;
+document.getElementById("ul").innerHTML=v.items.map(([k,t,s],i)=>`<li id="li${i}"><span class="k">${k}</span><div><b>${t}</b><small>${s}</small></div></li>`).join("");
+window.go=(T)=>T.forEach((t,i)=>setTimeout(()=>document.getElementById("li"+i).classList.add("on"),t*1000));
+</script></body></html>

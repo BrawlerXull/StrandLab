@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Inter:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}html,body{width:390px;height:844px;overflow:hidden;font-family:Inter,system-ui,sans-serif}
+.wall{position:absolute;inset:0;background:radial-gradient(420px 380px at 20% 15%,#4f8f86 0%,transparent 70%),radial-gradient(420px 420px at 90% 80%,#c98b52 0%,transparent 70%),linear-gradient(160deg,#27403d,#1d2a2a)}
+.status{position:absolute;top:14px;left:30px;right:26px;display:flex;justify-content:space-between;color:#fff;font-weight:600;font-size:15px}
+.grid{position:absolute;top:90px;left:22px;right:22px;display:grid;grid-template-columns:repeat(4,1fr);row-gap:26px}
+.app{display:flex;flex-direction:column;align-items:center;gap:7px;color:#fff;font-size:11.5px;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.ic{width:62px;height:62px;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.ic i{display:block;background:rgba(255,255,255,.85)}
+.sl .ic{background:#fff url(icon.png) center/cover;transform:scale(0);transition:transform .5s cubic-bezier(.2,1.5,.4,1)}
+.sl.on .ic{transform:scale(1)}
+.sl span{opacity:0;transition:opacity .4s .25s}.sl.on span{opacity:1}
+.dock{position:absolute;left:16px;right:16px;bottom:22px;height:92px;border-radius:30px;background:rgba(255,255,255,.18);backdrop-filter:blur(10px);display:flex;justify-content:space-around;align-items:center}
+.toast{position:absolute;left:24px;right:24px;top:640px;background:rgba(255,255,255,.92);color:#1F2A2A;border-radius:16px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:center;opacity:0;transform:translateY(10px);transition:all .4s}
+.toast.on{opacity:1;transform:none}.toast img{width:30px;height:30px;border-radius:8px}
+.splash{position:absolute;inset:0;background:#F6F3EE;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;transform:scale(.25);transform-origin:var(--ox) var(--oy);transition:opacity .25s,transform .45s cubic-bezier(.3,.7,.2,1);pointer-events:none}
+.splash.on{opacity:1;transform:none}
+.splash img{width:96px;height:96px;border-radius:24px}.splash b{font-family:Fraunces,Georgia,serif;font-weight:500;font-size:30px;color:#1F2A2A}
+</style></head><body>
+<div class="wall"></div>
+<div class="status"><span>9:41</span><span>●●● ▮</span></div>
+<div class="grid" id="grid"></div>
+<div class="dock"><div class="ic" style="background:#5fb37a"><i style="width:22px;height:22px;border-radius:50%"></i></div><div class="ic" style="background:#4b8fd6"><i style="width:26px;height:18px;border-radius:9px"></i></div><div class="ic" style="background:#e9eef2"><i style="width:26px;height:26px;border-radius:50%;background:#4b8fd6"></i></div><div class="ic" style="background:#f2994a"><i style="width:22px;height:22px;border-radius:6px"></i></div></div>
+<div class="toast" id="toast"><img src="icon.png" alt=""><div><b>StrandLab</b> was added to your home screen</div></div>
+<div class="splash" id="splash"><img src="icon.png" alt=""><b>StrandLab</b></div>
+<script>
+const apps=[["Camera","#3b3b3b","r"],["Photos","#f4f4f4","c"],["Calendar","#ffffff","s"],["Weather","#4aa3df","c"],["Notes","#f7d354","s"],["Maps","#79c27a","r"],["Music","#e65a6d","c"],["Clock","#222","c"],["Files","#3d7be0","s"],["Mail","#3d8ee0","s"],["Wallet","#2b2b2b","r"],["Settings","#8e8e93","c"],["Fitness","#2b2b2b","c"],["Books","#f08a24","s"],["StrandLab","","sl"]];
+const g=document.getElementById("grid");
+apps.forEach(([n,c,k])=>{ if(k==="sl"){g.insertAdjacentHTML("beforeend",`<div class="app sl" id="sl"><div class="ic"></div><span>${n}</span></div>`);return;}
+ const inner=k==="c"?'<i style="width:26px;height:26px;border-radius:50%"></i>':k==="s"?'<i style="width:28px;height:22px;border-radius:5px"></i>':'<i style="width:28px;height:8px;border-radius:4px"></i>';
+ g.insertAdjacentHTML("beforeend",`<div class="app"><div class="ic" style="background:${c}">${inner}</div><span>${n}</span></div>`);});
+window.addIcon=()=>{document.getElementById("sl").classList.add("on");document.getElementById("toast").classList.add("on");setTimeout(()=>document.getElementById("toast").classList.remove("on"),1600);};
+window.launch=()=>{const r=document.querySelector("#sl .ic").getBoundingClientRect();const s=document.getElementById("splash");s.style.setProperty("--ox",(r.x+r.width/2)+"px");s.style.setProperty("--oy",(r.y+r.height/2)+"px");s.classList.add("on");};
+</script></body></html>

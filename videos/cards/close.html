@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=block" rel="stylesheet">
+<style>
+  :root { --ink:#1F2A2A; --paper:#F6F3EE; --teal:#2F6B66; --tealsoft:#9FD3C7; --amber:#E0A33A; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:1280px; height:720px; overflow:hidden; background:var(--ink); color:var(--paper); font-family:Inter, system-ui, sans-serif; }
+  .serif { font-family:Fraunces, Georgia, serif; }
+  .bg { position:absolute; inset:0; background: radial-gradient(800px 500px at 50% 35%, #2e4241 0%, transparent 70%); }
+  .pillars { position:absolute; left:0; right:0; top:200px; display:flex; justify-content:center; gap:28px; transition: all .7s cubic-bezier(.6,0,.2,1); }
+  .p { width:340px; padding:30px 28px; border-radius:22px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); opacity:0; transform:translateY(30px); transition:all .6s cubic-bezier(.2,.8,.2,1); }
+  .p.on { opacity:1; transform:none; }
+  .p .k { font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--amber); font-weight:600; }
+  .p .v { font-size:34px; line-height:1.1; margin-top:12px; }
+  .p .d { color:#c4cecb; font-size:16px; margin-top:12px; line-height:1.4; }
+  .pillars.up { top:60px; transform:scale(.62); opacity:.0; }
+  .brand { position:absolute; left:0; right:0; top:170px; text-align:center; opacity:0; transform:translateY(24px); transition:all .8s cubic-bezier(.2,.8,.2,1); }
+  .brand.on { opacity:1; transform:none; }
+  .logo { display:inline-flex; align-items:center; gap:18px; }
+  .logo img { width:84px; height:84px; border-radius:22px; }
+  .logo span { font-size:84px; font-weight:500; letter-spacing:-.01em; }
+  .tag { font-size:30px; margin-top:16px; color:#d9e3e0; font-style:italic; }
+  .url { display:inline-block; margin-top:34px; font-family:"JetBrains Mono", monospace; font-size:28px; padding:14px 28px; border-radius:999px; background:var(--paper); color:var(--ink); font-weight:500; }
+  .apis { position:absolute; left:0; right:0; bottom:58px; text-align:center; opacity:0; transition:opacity .8s; }
+  .apis.on { opacity:1; }
+  .apis .h { font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:#9fb3ae; }
+  .apis .row { margin-top:12px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  .apis .row b { font-weight:500; font-size:15px; padding:7px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.2); color:#e7eeec; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="pillars" id="pillars">
+  <div class="p" id="p0"><div class="k">Measured</div><div class="v serif">by YouCam Hair AI</div><div class="d">Curl pattern, frizz, density and length from four photos.</div></div>
+  <div class="p" id="p1"><div class="k">Explained</div><div class="v serif">in plain words</div><div class="d">Every rule shows its measurement. A coach in 17 languages.</div></div>
+  <div class="p" id="p2"><div class="k">Ready</div><div class="v serif">for any store</div><div class="d">One script tag adds hair matching to any product page.</div></div>
+</div>
+<div class="brand" id="brand">
+  <div class="logo"><img src="icon.png" alt=""><span class="serif">StrandLab</span></div>
+  <div class="tag serif">Your hair, measured. In any store.</div>
+  <div class="url">strandlab-youcam.vercel.app</div>
+</div>
+<div class="apis" id="apis">
+  <div class="h">Built with the YouCam API</div>
+  <div class="row"><b>Hair Type Detection</b><b>Hair Frizziness Detection</b><b>Hair Density Detection</b><b>Hair Length Detection</b><b>Hair Volume try-on</b><b>Wavy Hair try-on</b></div>
+</div>
+<script>
+window.go = (L) => {
+  const at = (s, f) => setTimeout(f, s * 1000);
+  const $ = (id) => document.getElementById(id);
+  // line 0: "measured by YouCam / explained in plain words / ready for any store"
+  at(L[0] + 0.1, () => $("p0").classList.add("on"));
+  at(L[0] + 1.75, () => $("p1").classList.add("on"));
+  at(L[0] + 3.35, () => $("p2").classList.add("on"));
+  // line 1: brand + URL
+  at(L[1] - 0.15, () => $("pillars").classList.add("up"));
+  at(L[1] + 0.25, () => $("brand").classList.add("on"));
+  at(L[1] + 2.2, () => $("apis").classList.add("on"));
+};
+</script>
+</body>
+</html>

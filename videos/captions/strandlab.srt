@@ -1,0 +1,247 @@
+1
+00:00:00,600 --> 00:00:02,055
+Walk into any hair-care aisle,
+
+2
+00:00:02,075 --> 00:00:04,885
+and the labels expect you to already know your hair.
+
+3
+00:00:04,985 --> 00:00:08,195
+Is it 3B? Is it fine? Is it high porosity?
+
+4
+00:00:08,215 --> 00:00:10,906
+Honestly, most of us just guess.
+
+5
+00:00:11,006 --> 00:00:13,266
+So we buy a product, it doesn't work,
+
+6
+00:00:13,286 --> 00:00:14,795
+and we buy another one.
+
+7
+00:00:15,500 --> 00:00:16,630
+Meet StrandLab.
+
+8
+00:00:16,650 --> 00:00:19,275
+It measures your hair with YouCam's Hair AI,
+
+9
+00:00:19,295 --> 00:00:22,431
+and turns those numbers into exactly what to buy.
+
+10
+00:00:23,067 --> 00:00:25,967
+You take four photos: front, both sides,
+
+11
+00:00:25,987 --> 00:00:28,532
+and one with your head tipped forward.
+
+12
+00:00:28,632 --> 00:00:30,917
+The guided camera tracks your face live,
+
+13
+00:00:30,937 --> 00:00:32,957
+tells you out loud how to move,
+
+14
+00:00:32,977 --> 00:00:35,155
+and clicks the photo on its own.
+
+15
+00:00:35,255 --> 00:00:38,275
+Every photo is auto-framed for YouCam's detectors,
+
+16
+00:00:38,295 --> 00:00:39,647
+so you never get stuck.
+
+17
+00:00:40,167 --> 00:00:43,112
+Four YouCam APIs run in parallel: Hair Type,
+
+18
+00:00:43,132 --> 00:00:46,848
+Hair Frizziness, Hair Density and Hair Length Detection.
+
+19
+00:00:46,948 --> 00:00:49,768
+Meanwhile, I answer what a camera can't see,
+
+20
+00:00:49,788 --> 00:00:50,978
+like porosity.
+
+21
+00:00:51,078 --> 00:00:53,843
+And StrandLab checks the dew point in Mumbai,
+
+22
+00:00:53,863 --> 00:00:57,728
+because humidity changes which ingredients actually work.
+
+23
+00:00:58,233 --> 00:01:01,923
+Here's my result: 3B to 3C curls, high density,
+
+24
+00:01:01,943 --> 00:01:03,563
+and a humid week ahead.
+
+25
+00:01:03,663 --> 00:01:06,628
+So: rich products, hold for my curls,
+
+26
+00:01:06,648 --> 00:01:08,983
+and skip glycerin on humid days.
+
+27
+00:01:09,003 --> 00:01:11,426
+Every rule shows the measurement behind it.
+
+28
+00:01:11,526 --> 00:01:12,936
+And nothing is a black box.
+
+29
+00:01:12,956 --> 00:01:14,586
+You can see every YouCam call,
+
+30
+00:01:14,606 --> 00:01:17,132
+and every photo that auto-framing rescued.
+
+31
+00:01:17,667 --> 00:01:18,917
+Confused by any of it?
+
+32
+00:01:18,937 --> 00:01:22,399
+The coach explains it in plain words, in 17 languages.
+
+33
+00:01:22,499 --> 00:01:23,649
+You can even talk to it,
+
+34
+00:01:23,669 --> 00:01:25,570
+and have the answers read out loud.
+
+35
+00:01:26,200 --> 00:01:28,885
+Then, shopping. A ranked starter kit,
+
+36
+00:01:28,905 --> 00:01:31,445
+and real product links for your own country.
+
+37
+00:01:31,545 --> 00:01:32,535
+Standing in a store?
+
+38
+00:01:32,555 --> 00:01:34,915
+Just photograph the bottle's ingredient list,
+
+39
+00:01:34,935 --> 00:01:37,641
+and StrandLab tells you if it suits your hair.
+
+40
+00:01:38,167 --> 00:01:41,325
+And YouCam's Hair Volume try-on shows what this routine
+
+41
+00:01:41,345 --> 00:01:44,473
+can realistically do, right next to the ad promise.
+
+42
+00:01:45,200 --> 00:01:47,435
+Now, the big one for e-commerce.
+
+43
+00:01:47,455 --> 00:01:51,196
+Any online store can add StrandLab with one line of code.
+
+44
+00:01:51,296 --> 00:01:54,756
+The shopper taps "Find my hair match", matches once,
+
+45
+00:01:54,776 --> 00:01:57,782
+and every product on the page shows how well it suits
+
+46
+00:01:57,802 --> 00:01:58,292
+them.
+
+47
+00:01:58,392 --> 00:02:00,237
+The store gets the result as an event.
+
+48
+00:02:00,257 --> 00:02:03,156
+And the shopper's photos never leave StrandLab.
+
+49
+00:02:03,967 --> 00:02:07,837
+StrandLab is also a PWA. Install it from your browser,
+
+50
+00:02:07,857 --> 00:02:10,685
+and it opens full screen, just like a real app.
+
+51
+00:02:10,785 --> 00:02:13,030
+It's on your home screen in the store aisle,
+
+52
+00:02:13,050 --> 00:02:14,575
+uses your phone's camera,
+
+53
+00:02:14,595 --> 00:02:17,003
+and still opens when the network drops.
+
+54
+00:02:17,533 --> 00:02:20,028
+No camera, or don't want to share a selfie?
+
+55
+00:02:20,048 --> 00:02:23,044
+The no-photo check builds your plan from four picture
+
+56
+00:02:23,064 --> 00:02:23,820
+questions.
+
+57
+00:02:23,920 --> 00:02:26,480
+There's bigger text, a high-contrast mode,
+
+58
+00:02:26,500 --> 00:02:27,675
+voice in and out,
+
+59
+00:02:27,695 --> 00:02:30,689
+and you can send your plan to your stylist instantly.
+
+60
+00:02:31,400 --> 00:02:34,965
+Your hair, measured by YouCam, explained in plain words,
+
+61
+00:02:34,985 --> 00:02:36,499
+and ready for any store.
+
+62
+00:02:36,599 --> 00:02:41,380
+This is StrandLab. Try it free at strandlab-youcam.vercel.app

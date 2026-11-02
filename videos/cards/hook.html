@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=block" rel="stylesheet">
+<style>
+  :root { --ink:#1F2A2A; --paper:#F6F3EE; --teal:#2F6B66; --tealsoft:#9FD3C7; --amber:#E0A33A; --clay:#E07A5F; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--ink); color: var(--paper); font-family: Inter, system-ui, sans-serif; }
+  .serif { font-family: Fraunces, Georgia, serif; }
+  .bg { position:absolute; inset:0; background: radial-gradient(900px 500px at 75% 20%, #2c3d3c 0%, transparent 70%), radial-gradient(700px 500px at 10% 100%, #24302f 0%, transparent 70%); }
+  .eyebrow { position:absolute; left:80px; top:64px; font-size:13px; letter-spacing:.22em; text-transform:uppercase; color:var(--amber); font-weight:600; opacity:0; transition:opacity .6s; }
+  .go .eyebrow { opacity:1; }
+  h1 { position:absolute; left:80px; top:100px; width:900px; font-size:56px; line-height:1.08; font-weight:500; letter-spacing:-.01em; }
+  h1 span { display:inline-block; opacity:0; transform:translateY(18px); transition:opacity .5s, transform .6s cubic-bezier(.2,.8,.2,1); }
+  h1 span.on { opacity:1; transform:none; }
+  h1.out { transition: opacity .5s; opacity:0; }
+  .shelf { position:absolute; left:80px; right:80px; bottom:110px; height:300px; display:flex; align-items:flex-end; justify-content:space-between; }
+  .shelf::after { content:""; position:absolute; left:-20px; right:-20px; bottom:-14px; height:14px; border-radius:4px; background:#3a4a49; }
+  .bottle { position:relative; width:170px; display:flex; flex-direction:column; align-items:center; opacity:0; transform:translateY(40px); transition:opacity .6s, transform .7s cubic-bezier(.2,.8,.2,1), filter .6s; }
+  .bottle.on { opacity:1; transform:none; }
+  .cap { width:56px; height:34px; border-radius:6px 6px 2px 2px; background:#2b2b2b; }
+  .body { width:150px; border-radius:26px; padding:22px 12px; display:flex; align-items:center; justify-content:center; }
+  .label { background:rgba(255,255,255,.85); color:#1F2A2A; border-radius:8px; padding:10px 8px; text-align:center; font-size:15px; font-weight:600; width:100%; line-height:1.2; }
+  .label small { display:block; font-weight:400; font-size:11px; color:#555; margin-top:4px; }
+  .q { position:absolute; top:-26px; left:50%; transform:translate(-50%,10px) scale(.6); background:var(--amber); color:#1F2A2A; font-weight:700; font-size:28px; padding:6px 16px; border-radius:999px; opacity:0; transition:all .45s cubic-bezier(.2,1.4,.4,1); white-space:nowrap; box-shadow:0 10px 30px rgba(0,0,0,.35); }
+  .q.on { opacity:1; transform:translate(-50%,0) scale(1); }
+  .dim .bottle { filter: saturate(.3) brightness(.7); }
+  .stamp { position:absolute; left:80px; top:110px; font-size:64px; color:var(--clay); font-style:italic; opacity:0; transform:scale(1.25) rotate(-3deg); transition:all .45s cubic-bezier(.2,1.3,.4,1); }
+  .stamp.on { opacity:1; transform:scale(1) rotate(-3deg); }
+  .stamp.out { opacity:0; transition:opacity .4s; }
+  /* loop */
+  .loop { position:absolute; inset:0; opacity:0; transition:opacity .6s; }
+  .loop.on { opacity:1; }
+  .ring { position:absolute; left:120px; top:150px; width:440px; height:440px; }
+  .node { position:absolute; width:180px; padding:16px 10px; text-align:center; border-radius:18px; background:#2a3938; border:1.5px solid #3e5150; font-size:22px; font-weight:600; transition: all .35s; }
+  .node.hot { background:var(--paper); color:var(--ink); border-color:var(--paper); transform:scale(1.08); box-shadow:0 12px 40px rgba(0,0,0,.4); }
+  .node.bad.hot { background:var(--clay); color:#fff; border-color:var(--clay); }
+  .n0 { left:130px; top:-10px; } .n1 { left:320px; top:180px; } .n2 { left:130px; top:370px; } .n3 { left:-60px; top:180px; }
+  .arrows { position:absolute; left:120px; top:150px; }
+  .pile { position:absolute; left:700px; top:150px; width:480px; }
+  .pile h2 { font-size:40px; font-weight:500; line-height:1.1; }
+  .pile .count { font-size:120px; line-height:1; color:var(--amber); font-weight:500; margin-top:18px; }
+  .pile .sub { color:#c9d2cf; font-size:20px; margin-top:6px; }
+  .minis { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; width:420px; }
+  .mini { width:34px; height:62px; border-radius:10px 10px 8px 8px; position:relative; opacity:0; transform:translateY(-30px); transition:all .4s cubic-bezier(.2,1.3,.4,1); }
+  .mini::before { content:""; position:absolute; left:9px; top:-10px; width:16px; height:12px; background:#2b2b2b; border-radius:3px; }
+  .mini.on { opacity:1; transform:none; }
+  .mini .lvl { position:absolute; left:0; right:0; bottom:0; border-radius:0 0 8px 8px; background:rgba(0,0,0,.25); }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div id="stage">
+  <p class="eyebrow">The problem</p>
+  <h1 class="serif" id="h1"></h1>
+  <div class="stamp serif" id="stamp">Most of us just guess.</div>
+  <div class="shelf" id="shelf"></div>
+  <div class="loop" id="loop">
+    <svg class="arrows" width="440" height="440" viewBox="0 0 440 440"><circle cx="220" cy="230" r="175" fill="none" stroke="#3e5150" stroke-width="3" stroke-dasharray="8 10"/></svg>
+    <div class="ring">
+      <div class="node n0" data-i="0">Buy a product</div>
+      <div class="node n1" data-i="1">Try it</div>
+      <div class="node n2 bad" data-i="2">Doesn't work</div>
+      <div class="node n3" data-i="3">Buy another</div>
+    </div>
+    <div class="pile">
+      <h2 class="serif">The guessing loop</h2>
+      <div class="count serif" id="count">0</div>
+      <div class="sub">half-used bottles on the shelf</div>
+      <div class="minis" id="minis"></div>
+    </div>
+  </div>
+</div>
+<script>
+const B = [
+  ["#CFE3DE", "For 3B curls", "defining cream"],
+  ["#EAD9C2", "Fine hair", "volume shampoo"],
+  ["#E3E6F1", "Low porosity", "light leave-in"],
+  ["#EADCE6", "Type 4A coils", "butter mask"],
+  ["#DDEBDD", "Anti-frizz", "humidity serum"],
+];
+const shelf = document.getElementById("shelf");
+B.forEach(([c, t, s], i) => {
+  shelf.insertAdjacentHTML("beforeend", `<div class="bottle" id="b${i}"><div class="q" id="q${i}"></div><div class="cap"></div><div class="body" style="background:${c};height:${200 + (i % 2) * 30}px"><div class="label">${t}<small>${s}</small></div></div></div>`);
+});
+const words = "The hair-care aisle expects you to already know your hair.".split(" ");
+const h1 = document.getElementById("h1");
+h1.innerHTML = words.map((w) => `<span>${w}&nbsp;</span>`).join("");
+const minis = document.getElementById("minis");
+const MC = ["#CFE3DE","#EAD9C2","#E3E6F1","#EADCE6","#DDEBDD","#F2D4C2","#D7E4F0","#E9E2C8"];
+for (let i = 0; i < 8; i++) minis.insertAdjacentHTML("beforeend", `<div class="mini" style="background:${MC[i]}"><div class="lvl" style="height:${30 + (i*23)%55}%"></div></div>`);
+
+window.go = (L) => {
+  const at = (s, f) => setTimeout(f, s * 1000);
+  const $ = (id) => document.getElementById(id);
+  document.body.classList.add("go");
+  // Line 0: headline word by word, bottles slide in
+  words.forEach((_, i) => at(L[0] + 0.12 + i * 0.16, () => h1.children[i].classList.add("on")));
+  B.forEach((_, i) => at(L[0] + 0.9 + i * 0.22, () => $("b" + i).classList.add("on")));
+  // Line 1: question tags
+  at(L[1] - 0.2, () => h1.classList.add("out"));
+  const qs = [[0, "3B?"], [1, "Fine?"], [2, "High porosity?"], [3, "4A?"], [4, "Anti-what?"]];
+  const qt = [L[1] + 0.45, L[1] + 1.55, L[1] + 2.6, L[1] + 3.3, L[1] + 3.75];
+  qs.forEach(([i, t], k) => at(qt[k], () => { $("q" + i).textContent = t; $("q" + i).classList.add("on"); }));
+  at(L[1] + 4.2, () => { $("stamp").classList.add("on"); document.getElementById("stage").classList.add("dim"); });
+  // Line 2: the loop
+  at(L[2] - 0.25, () => { $("stamp").classList.add("out"); shelf.style.transition = "opacity .5s"; shelf.style.opacity = 0; });
+  at(L[2] + 0.1, () => $("loop").classList.add("on"));
+  const nodes = [...document.querySelectorAll(".node")];
+  let k = 0, n = 0;
+  const tick = () => {
+    nodes.forEach((x) => x.classList.remove("hot"));
+    nodes[k % 4].classList.add("hot");
+    if ((k % 4 === 0 || k % 4 === 3) && n < 8) { minis.children[n].classList.add("on"); n++; $("count").textContent = n; }
+    k++;
+  };
+  // speed up as the loop repeats
+  let t = L[2] + 0.35, dt = 0.62;
+  for (let i = 0; i < 26 && t < L[2] + 4.6; i++) { at(t, tick); t += dt; dt = Math.max(0.12, dt * 0.86); }
+};
+</script>
+</body>
+</html>

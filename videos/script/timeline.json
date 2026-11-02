@@ -1,0 +1,224 @@
+{
+ "total": 163.383,
+ "scenes": [
+  {
+   "id": "s01_hook",
+   "start": 0.0,
+   "duration": 15.215,
+   "lines": [
+    {
+     "cap": "Walk into any hair-care aisle, and the labels expect you to already know your hair.",
+     "start": 0.6,
+     "end": 4.705
+    },
+    {
+     "cap": "Is it 3B? Is it fine? Is it high porosity? Honestly, most of us just guess.",
+     "start": 4.985,
+     "end": 10.726
+    },
+    {
+     "cap": "So we buy a product, it doesn't work, and we buy another one.",
+     "start": 11.006,
+     "end": 14.615
+    }
+   ]
+  },
+  {
+   "id": "s02_intro",
+   "start": 15.215,
+   "duration": 7.551,
+   "lines": [
+    {
+     "cap": "Meet StrandLab. It measures your hair with YouCam's Hair AI, and turns those numbers into exactly what to buy.",
+     "start": 0.3,
+     "end": 7.051
+    }
+   ]
+  },
+  {
+   "id": "s03_scan",
+   "start": 22.766,
+   "duration": 17.1,
+   "lines": [
+    {
+     "cap": "You take four photos: front, both sides, and one with your head tipped forward.",
+     "start": 0.3,
+     "end": 5.585
+    },
+    {
+     "cap": "The guided camera tracks your face live, tells you out loud how to move, and clicks the photo on its own.",
+     "start": 5.865,
+     "end": 12.208
+    },
+    {
+     "cap": "Every photo is auto-framed for YouCam's detectors, so you never get stuck.",
+     "start": 12.488,
+     "end": 16.7
+    }
+   ]
+  },
+  {
+   "id": "s04_details",
+   "start": 39.866,
+   "duration": 18.081,
+   "lines": [
+    {
+     "cap": "Four YouCam APIs run in parallel: Hair Type, Hair Frizziness, Hair Density and Hair Length Detection.",
+     "start": 0.3,
+     "end": 6.801
+    },
+    {
+     "cap": "Meanwhile, I answer what a camera can't see, like porosity.",
+     "start": 7.081,
+     "end": 10.931
+    },
+    {
+     "cap": "And StrandLab checks the dew point in Mumbai, because humidity changes which ingredients actually work.",
+     "start": 11.211,
+     "end": 17.681
+    }
+   ]
+  },
+  {
+   "id": "s05_results",
+   "start": 57.947,
+   "duration": 19.419,
+   "lines": [
+    {
+     "cap": "Here's my result: 3B to 3C curls, high density, and a humid week ahead.",
+     "start": 0.3,
+     "end": 5.45
+    },
+    {
+     "cap": "So: rich products, hold for my curls, and skip glycerin on humid days. Every rule shows the measurement behind it.",
+     "start": 5.73,
+     "end": 13.313
+    },
+    {
+     "cap": "And nothing is a black box. You can see every YouCam call, and every photo that auto-framing rescued.",
+     "start": 13.593,
+     "end": 19.019
+    }
+   ]
+  },
+  {
+   "id": "s06_coach",
+   "start": 77.366,
+   "duration": 8.523,
+   "lines": [
+    {
+     "cap": "Confused by any of it? The coach explains it in plain words, in 17 languages.",
+     "start": 0.3,
+     "end": 4.852
+    },
+    {
+     "cap": "You can even talk to it, and have the answers read out loud.",
+     "start": 5.132,
+     "end": 8.023
+    }
+   ]
+  },
+  {
+   "id": "s07_shop",
+   "start": 85.889,
+   "duration": 11.961,
+   "lines": [
+    {
+     "cap": "Then, shopping. A ranked starter kit, and real product links for your own country.",
+     "start": 0.3,
+     "end": 5.365
+    },
+    {
+     "cap": "Standing in a store? Just photograph the bottle's ingredient list, and StrandLab tells you if it suits your hair.",
+     "start": 5.645,
+     "end": 11.561
+    }
+   ]
+  },
+  {
+   "id": "s08_preview",
+   "start": 97.85,
+   "duration": 6.926,
+   "lines": [
+    {
+     "cap": "And YouCam's Hair Volume try-on shows what this routine can realistically do, right next to the ad promise.",
+     "start": 0.3,
+     "end": 6.426
+    }
+   ]
+  },
+  {
+   "id": "s09_store",
+   "start": 104.776,
+   "duration": 18.776,
+   "lines": [
+    {
+     "cap": "Now, the big one for e-commerce. Any online store can add StrandLab with one line of code.",
+     "start": 0.4,
+     "end": 6.216
+    },
+    {
+     "cap": "The shopper taps \"Find my hair match\", matches once, and every product on the page shows how well it suits them.",
+     "start": 6.496,
+     "end": 13.312
+    },
+    {
+     "cap": "The store gets the result as an event. And the shopper's photos never leave StrandLab.",
+     "start": 13.592,
+     "end": 18.176
+    }
+   ]
+  },
+  {
+   "id": "s10_pwa",
+   "start": 123.552,
+   "duration": 13.656,
+   "lines": [
+    {
+     "cap": "StrandLab is also a PWA. Install it from your browser, and it opens full screen, just like a real app.",
+     "start": 0.4,
+     "end": 6.938
+    },
+    {
+     "cap": "It's on your home screen in the store aisle, uses your phone's camera, and still opens when the network drops.",
+     "start": 7.218,
+     "end": 13.256
+    }
+   ]
+  },
+  {
+   "id": "s11_access",
+   "start": 137.208,
+   "duration": 13.776,
+   "lines": [
+    {
+     "cap": "No camera, or don't want to share a selfie? The no-photo check builds your plan from four picture questions.",
+     "start": 0.3,
+     "end": 6.407
+    },
+    {
+     "cap": "There's bigger text, a high-contrast mode, voice in and out, and you can send your plan to your stylist instantly.",
+     "start": 6.687,
+     "end": 13.276
+    }
+   ]
+  },
+  {
+   "id": "s12_close",
+   "start": 150.984,
+   "duration": 12.4,
+   "lines": [
+    {
+     "cap": "Your hair, measured by YouCam, explained in plain words, and ready for any store.",
+     "start": 0.4,
+     "end": 5.319
+    },
+    {
+     "cap": "This is StrandLab. Try it free at strandlab-youcam.vercel.app",
+     "start": 5.599,
+     "end": 10.2
+    }
+   ]
+  }
+ ]
+}

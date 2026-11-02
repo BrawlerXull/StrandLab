@@ -1,0 +1,203 @@
+{
+  "voice": {
+    "model": "bulbul:v3",
+    "speaker": "rehan",
+    "language_code": "en-IN",
+    "pace": 1.08
+  },
+  "gap": 0.28,
+  "scenes": [
+    {
+      "id": "s01_hook",
+      "lead": 0.6,
+      "tail": 0.6,
+      "lines": [
+        {
+          "say": "Walk into any hair-care aisle, and the labels expect you to already know your hair.",
+          "cap": "Walk into any hair-care aisle, and the labels expect you to already know your hair."
+        },
+        {
+          "say": "Is it three B? Is it fine? Is it high porosity? Honestly, most of us just guess.",
+          "cap": "Is it 3B? Is it fine? Is it high porosity? Honestly, most of us just guess."
+        },
+        {
+          "say": "So we buy a product, it doesn't work, and we buy another one.",
+          "cap": "So we buy a product, it doesn't work, and we buy another one."
+        }
+      ]
+    },
+    {
+      "id": "s02_intro",
+      "lead": 0.3,
+      "tail": 0.5,
+      "lines": [
+        {
+          "say": "Meet StrandLab. It measures your hair with YouCam's Hair AI, and turns those numbers into exactly what to buy.",
+          "cap": "Meet StrandLab. It measures your hair with YouCam's Hair AI, and turns those numbers into exactly what to buy."
+        }
+      ]
+    },
+    {
+      "id": "s03_scan",
+      "lead": 0.3,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "You take four photos: front, both sides, and one with your head tipped forward.",
+          "cap": "You take four photos: front, both sides, and one with your head tipped forward."
+        },
+        {
+          "say": "The guided camera tracks your face live, tells you out loud how to move, and clicks the photo on its own.",
+          "cap": "The guided camera tracks your face live, tells you out loud how to move, and clicks the photo on its own."
+        },
+        {
+          "say": "Every photo is auto-framed for YouCam's detectors, so you never get stuck.",
+          "cap": "Every photo is auto-framed for YouCam's detectors, so you never get stuck."
+        }
+      ]
+    },
+    {
+      "id": "s04_details",
+      "lead": 0.3,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "Four YouCam APIs run in parallel: Hair Type, Hair Frizziness, Hair Density, and Hair Length Detection.",
+          "cap": "Four YouCam APIs run in parallel: Hair Type, Hair Frizziness, Hair Density and Hair Length Detection."
+        },
+        {
+          "say": "Meanwhile, I answer what a camera can't see, like porosity.",
+          "cap": "Meanwhile, I answer what a camera can't see, like porosity."
+        },
+        {
+          "say": "And StrandLab checks the dew point in Mumbai, because humidity changes which ingredients actually work.",
+          "cap": "And StrandLab checks the dew point in Mumbai, because humidity changes which ingredients actually work."
+        }
+      ]
+    },
+    {
+      "id": "s05_results",
+      "lead": 0.3,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "Here's my result. Three B to three C curls, high density, and a humid week ahead.",
+          "cap": "Here's my result: 3B to 3C curls, high density, and a humid week ahead."
+        },
+        {
+          "say": "So, rich products, hold for my curls, and skip glycerin on humid days. Every rule shows the measurement behind it.",
+          "cap": "So: rich products, hold for my curls, and skip glycerin on humid days. Every rule shows the measurement behind it."
+        },
+        {
+          "say": "And nothing is a black box. You can see every YouCam call, and every photo that auto-framing rescued.",
+          "cap": "And nothing is a black box. You can see every YouCam call, and every photo that auto-framing rescued."
+        }
+      ]
+    },
+    {
+      "id": "s06_coach",
+      "lead": 0.3,
+      "tail": 0.5,
+      "lines": [
+        {
+          "say": "Confused by any of it? The coach explains it in plain words, in seventeen languages.",
+          "cap": "Confused by any of it? The coach explains it in plain words, in 17 languages."
+        },
+        {
+          "say": "You can even talk to it, and have the answers read out loud.",
+          "cap": "You can even talk to it, and have the answers read out loud."
+        }
+      ]
+    },
+    {
+      "id": "s07_shop",
+      "lead": 0.3,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "Then, shopping. A ranked starter kit, and real product links for your own country.",
+          "cap": "Then, shopping. A ranked starter kit, and real product links for your own country."
+        },
+        {
+          "say": "Standing in a store? Just photograph the bottle's ingredient list, and StrandLab tells you if it suits your hair.",
+          "cap": "Standing in a store? Just photograph the bottle's ingredient list, and StrandLab tells you if it suits your hair."
+        }
+      ]
+    },
+    {
+      "id": "s08_preview",
+      "lead": 0.3,
+      "tail": 0.5,
+      "lines": [
+        {
+          "say": "And YouCam's Hair Volume try-on shows what this routine can realistically do, right next to the ad promise.",
+          "cap": "And YouCam's Hair Volume try-on shows what this routine can realistically do, right next to the ad promise."
+        }
+      ]
+    },
+    {
+      "id": "s09_store",
+      "lead": 0.4,
+      "tail": 0.6,
+      "lines": [
+        {
+          "say": "Now, the big one for e-commerce. Any online store can add StrandLab with one line of code.",
+          "cap": "Now, the big one for e-commerce. Any online store can add StrandLab with one line of code."
+        },
+        {
+          "say": "The shopper taps, Find my hair match, matches once, and every product on the page shows how well it suits them.",
+          "cap": "The shopper taps \"Find my hair match\", matches once, and every product on the page shows how well it suits them."
+        },
+        {
+          "say": "The store gets the result as an event. And the shopper's photos never leave StrandLab.",
+          "cap": "The store gets the result as an event. And the shopper's photos never leave StrandLab."
+        }
+      ]
+    },
+    {
+      "id": "s10_pwa",
+      "lead": 0.4,
+      "tail": 0.4,
+      "lines": [
+        {
+          "say": "StrandLab is also a P.W.A. Install it from your browser, and it opens full screen, just like a real app.",
+          "cap": "StrandLab is also a PWA. Install it from your browser, and it opens full screen, just like a real app."
+        },
+        {
+          "say": "It's on your home screen in the store aisle, uses your phone's camera, and still opens when the network drops.",
+          "cap": "It's on your home screen in the store aisle, uses your phone's camera, and still opens when the network drops."
+        }
+      ]
+    },
+    {
+      "id": "s11_access",
+      "lead": 0.3,
+      "tail": 0.5,
+      "lines": [
+        {
+          "say": "No camera, or don't want to share a selfie? The no-photo check builds your plan from four picture questions.",
+          "cap": "No camera, or don't want to share a selfie? The no-photo check builds your plan from four picture questions."
+        },
+        {
+          "say": "There's bigger text, a high-contrast mode, voice in and out, and you can send your plan to your stylist instantly.",
+          "cap": "There's bigger text, a high-contrast mode, voice in and out, and you can send your plan to your stylist instantly."
+        }
+      ]
+    },
+    {
+      "id": "s12_close",
+      "lead": 0.4,
+      "tail": 2.2,
+      "lines": [
+        {
+          "say": "Your hair, measured by YouCam, explained in plain words, and ready for any store.",
+          "cap": "Your hair, measured by YouCam, explained in plain words, and ready for any store."
+        },
+        {
+          "say": "This is StrandLab. Try it free, at strandlab dash youcam dot vercel dot app.",
+          "cap": "This is StrandLab. Try it free at strandlab-youcam.vercel.app"
+        }
+      ]
+    }
+  ]
+}

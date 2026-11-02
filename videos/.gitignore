@@ -1,0 +1,9 @@
+work/
+node_modules/
+clips/
+frames/
+audio/
+captions/png/
+captions/track.mov
+captions/list.txt
+out/*.mp4
